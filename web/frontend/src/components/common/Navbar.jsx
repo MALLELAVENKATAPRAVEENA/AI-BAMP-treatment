@@ -1,6 +1,6 @@
 import React from 'react';
-import { AppBar, Toolbar, Typography, Button, IconButton, Box, Chip } from '@mui/material';
-import { Brightness4, Brightness7, LocalHospital, AccountCircle, ExitToApp } from '@mui/icons-material';
+import { AppBar, Toolbar, Typography, Button, IconButton, Box, Chip, Avatar } from '@mui/material';
+import { Brightness4, Brightness7, LocalHospital, ExitToApp } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
 import { useThemeContext } from '../../context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
@@ -13,7 +13,7 @@ export const Navbar = () => {
   return (
     <AppBar position="sticky" elevation={0} sx={{ background: mode === 'dark' ? '#111827' : '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.08)', color: 'text.primary' }}>
       <Toolbar sx={{ justifyContent: 'space-between' }}>
-        <Box display="flex" alignItems="center" gap={1.5} sx={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
+        <Box display="flex" alignItems="center" gap={1.5} sx={{ cursor: 'pointer' }} onClick={() => navigate('/dashboard')}>
           <LocalHospital sx={{ color: 'primary.main', fontSize: 32 }} />
           <Box>
             <Typography variant="h6" fontWeight={700} sx={{ background: 'linear-gradient(135deg, #0f52ba, #0d9488)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
@@ -33,8 +33,17 @@ export const Navbar = () => {
           {isAuthenticated ? (
             <>
               <Chip label={role} color={role === 'Administrator' ? 'secondary' : 'primary'} size="small" variant="outlined" sx={{ fontWeight: 600 }} />
-              <Button startIcon={<AccountCircle />} onClick={() => navigate('/settings/profile')} color="inherit">
-                {user?.fullName || 'Doctor Profile'}
+              <Button
+                onClick={() => navigate('/settings/profile')}
+                color="inherit"
+                startIcon={
+                  <Avatar src={user?.avatarUrl} sx={{ width: 28, height: 28, fontSize: 13, bgcolor: 'primary.main' }}>
+                    {!user?.avatarUrl && (user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'D')}
+                  </Avatar>
+                }
+                sx={{ textTransform: 'none', fontWeight: 600 }}
+              >
+                {user?.fullName || 'Practitioner Profile'}
               </Button>
               <IconButton color="error" title="Sign Out" onClick={() => { logoutUser(); navigate('/login'); }}>
                 <ExitToApp />

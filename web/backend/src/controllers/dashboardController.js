@@ -3,65 +3,70 @@ const { sendSuccess, sendError } = require('../utils/responseHandler');
 
 const getDashboardStats = async (req, res, next) => {
   try {
-    let patientsList = Array.from(inMemoryStore.patients.values());
-    let predictionsList = Array.from(inMemoryStore.predictions.values());
-    let xraysList = Array.from(inMemoryStore.xrays.values());
-    let reportsList = Array.from(inMemoryStore.reports.values());
+    const doctorId = req.user?.uid || req.user?.id;
 
-    if (db) {
+    let patientsList = [];
+    let predictionsList = [];
+    let xraysList = [];
+    let reportsList = [];
+
+    if (db && doctorId) {
       try {
-        const pSnap = await db.collection('patients').get();
-        if (!pSnap.empty) {
-          patientsList = pSnap.docs.map(doc => doc.data());
-        }
+        const pSnap = await db.collection('patients').where('doctorId', '==', doctorId).get();
+        patientsList = pSnap.docs.map(doc => doc.data());
 
-        const predSnap = await db.collection('predictions').get();
-        if (!predSnap.empty) {
-          predictionsList = predSnap.docs.map(doc => doc.data());
-        }
+        const predSnap = await db.collection('predictions').where('doctorId', '==', doctorId).get();
+        predictionsList = predSnap.docs.map(doc => doc.data());
 
-        const xraySnap = await db.collection('xrays').get();
-        if (!xraySnap.empty) {
-          xraysList = xraySnap.docs.map(doc => doc.data());
-        }
+        const xraySnap = await db.collection('xrays').where('doctorId', '==', doctorId).get();
+        xraysList = xraySnap.docs.map(doc => doc.data());
 
-        const repSnap = await db.collection('reports').get();
-        if (!repSnap.empty) {
-          reportsList = repSnap.docs.map(doc => doc.data());
-        }
+        const repSnap = await db.collection('reports').where('doctorId', '==', doctorId).get();
+        reportsList = repSnap.docs.map(doc => doc.data());
       } catch (e) {
         console.warn('[Firestore] Dashboard query using in-memory store metrics fallback');
+        patientsList = Array.from(inMemoryStore.patients.values()).filter(p => p.doctorId === doctorId);
+        predictionsList = Array.from(inMemoryStore.predictions.values()).filter(p => p.doctorId === doctorId);
+        xraysList = Array.from(inMemoryStore.xrays.values()).filter(p => p.doctorId === doctorId);
+        reportsList = Array.from(inMemoryStore.reports.values()).filter(p => p.doctorId === doctorId);
       }
+    } else if (doctorId) {
+      patientsList = Array.from(inMemoryStore.patients.values()).filter(p => p.doctorId === doctorId);
+      predictionsList = Array.from(inMemoryStore.predictions.values()).filter(p => p.doctorId === doctorId);
+      xraysList = Array.from(inMemoryStore.xrays.values()).filter(p => p.doctorId === doctorId);
+      reportsList = Array.from(inMemoryStore.reports.values()).filter(p => p.doctorId === doctorId);
     }
 
-    const totalPatients = patientsList.length || 1;
-    const totalPredictions = predictionsList.length || 1;
-    const totalXrays = xraysList.length || 1;
-    const totalReports = reportsList.length || 1;
+    const totalPatients = patientsList.length;
+    const totalPredictions = predictionsList.length;
+    const totalXrays = xraysList.length;
+    const totalReports = reportsList.length;
 
-    // Calculate dynamic risk level distributions
+    // Calculate dynamic risk level distributions for THIS doctor
     const successfulCases = predictionsList.filter(p => (p.riskLevel === 'Success' || p.successProbability >= 85)).length;
     const moderateRiskCases = predictionsList.filter(p => (p.riskLevel === 'Moderate Risk' || (p.successProbability >= 70 && p.successProbability < 85))).length;
     const highRiskCases = predictionsList.filter(p => (p.riskLevel === 'High Risk' || p.successProbability < 70)).length;
 
     // Calculate mean prediction probability
-    const avgProbSum = predictionsList.reduce((sum, p) => sum + Number(p.successProbability || 85.0), 0);
-    const avgSuccessRate = predictionsList.length > 0 ? (avgProbSum / predictionsList.length) : 88.5;
+    const avgProbSum = predictionsList.reduce((sum, p) => sum + Number(p.successProbability || 0), 0);
+    const avgSuccessRate = predictionsList.length > 0 ? (avgProbSum / predictionsList.length) : 0.0;
 
-    // CVM distribution from real patient charts
+    // CVM distribution from real doctor's patient charts
     const cvmCounts = { 'CVM 1': 0, 'CVM 2': 0, 'CVM 3': 0, 'CVM 4': 0, 'CVM 5': 0, 'CVM 6': 0 };
     patientsList.forEach(p => {
       const st = p.cvmStage || 'CVM 3';
       if (cvmCounts[st] !== undefined) cvmCounts[st]++;
-      else cvmCounts['CVM 3']++;
     });
+
+    const femaleCount = patientsList.filter(p => (p.gender || '').toLowerCase() === 'female').length;
+    const maleCount = patientsList.filter(p => (p.gender || '').toLowerCase() === 'male').length;
 
     const stats = {
       widgets: {
         totalPatients,
-        newPatientsThisMonth: Math.max(1, patientsList.length),
+        newPatientsThisMonth: totalPatients,
         predictionCount: totalPredictions,
-        successfulCases: Math.max(successfulCases, 1),
+        successfulCases,
         moderateRiskCases,
         highRiskCases,
         uploadedXrays: totalXrays,
@@ -70,32 +75,26 @@ const getDashboardStats = async (req, res, next) => {
       },
       charts: {
         successRateTrend: [
-          { month: 'Jan', successRate: 84.5, totalCases: 20 },
-          { month: 'Feb', successRate: 86.2, totalCases: 28 },
-          { month: 'Mar', successRate: 88.0, totalCases: 32 },
-          { month: 'Apr', successRate: 87.4, totalCases: 30 },
-          { month: 'May', successRate: 89.1, totalCases: 40 },
-          { month: 'Jun', successRate: Number(avgSuccessRate.toFixed(1)), totalCases: totalPredictions }
+          { month: 'Current', successRate: Number(avgSuccessRate.toFixed(1)), totalCases: totalPredictions }
         ],
         ageDistribution: [
-          { ageGroup: '8-9 yrs', count: patientsList.filter(p => (p.age || 10) < 10).length || 2, percentage: 20.0 },
-          { ageGroup: '10-11 yrs', count: patientsList.filter(p => (p.age || 10) >= 10 && (p.age || 10) <= 11).length || 5, percentage: 50.0 },
-          { ageGroup: '12-13 yrs', count: patientsList.filter(p => (p.age || 10) >= 12 && (p.age || 10) <= 13).length || 2, percentage: 20.0 },
-          { ageGroup: '14+ yrs', count: patientsList.filter(p => (p.age || 10) > 13).length || 1, percentage: 10.0 }
+          { ageGroup: '8-9 yrs', count: patientsList.filter(p => (p.age || 0) < 10).length },
+          { ageGroup: '10-11 yrs', count: patientsList.filter(p => (p.age || 0) >= 10 && (p.age || 0) <= 11).length },
+          { ageGroup: '12-13 yrs', count: patientsList.filter(p => (p.age || 0) >= 12 && (p.age || 0) <= 13).length },
+          { ageGroup: '14+ yrs', count: patientsList.filter(p => (p.age || 0) > 13).length }
         ],
         genderDistribution: [
-          { gender: 'Female', count: patientsList.filter(p => (p.gender || 'Female').toLowerCase() === 'female').length || 1 },
-          { gender: 'Male', count: patientsList.filter(p => (p.gender || '').toLowerCase() === 'male').length || 1 }
+          { gender: 'Female', count: femaleCount },
+          { gender: 'Male', count: maleCount }
         ],
         growthStageAnalysis: Object.keys(cvmCounts).map(stage => ({
           stage,
-          count: cvmCounts[stage],
-          avgSuccess: stage === 'CVM 3' ? 94.8 : (stage === 'CVM 2' ? 91.2 : 76.5)
+          count: cvmCounts[stage]
         }))
       }
     };
 
-    return sendSuccess(res, 'Live dashboard metrics fetched successfully', stats);
+    return sendSuccess(res, 'Live doctor dashboard metrics fetched successfully', stats);
   } catch (error) {
     return sendError(res, error.message, 500);
   }

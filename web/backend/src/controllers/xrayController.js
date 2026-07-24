@@ -7,8 +7,11 @@ const uploadXray = async (req, res, next) => {
       return sendError(res, 'No file uploaded', 400);
     }
 
+    const doctorId = req.user?.uid || req.user?.id;
+
     const xrayData = {
-      patientId: req.body.patientId || 'PAT-2026-001',
+      patientId: req.body.patientId || 'PAT-001',
+      doctorId,
       filename: req.file.filename,
       originalName: req.file.originalname,
       mimeType: req.file.mimetype,
@@ -24,7 +27,8 @@ const uploadXray = async (req, res, next) => {
 
 const getXrayById = async (req, res, next) => {
   try {
-    const xray = await xrayService.getXrayById(req.params.id);
+    const doctorId = req.user?.uid || req.user?.id;
+    const xray = await xrayService.getXrayById(req.params.id, doctorId);
     if (!xray) {
       return sendError(res, 'X-Ray record not found', 404);
     }

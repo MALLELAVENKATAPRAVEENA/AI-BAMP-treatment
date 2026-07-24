@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box, Card, CardContent, Typography, Button, TextField, MenuItem, Alert, Grid,
   Stepper, Step, StepLabel, LinearProgress, Chip, Paper
 } from '@mui/material';
-import { CloudUpload, InsertDriveFile, ArrowForward, CheckCircle, AutoAwesome, Refresh } from '@mui/icons-material';
+import { CloudUpload, InsertDriveFile, ArrowForward, CheckCircle, AutoAwesome, PersonAdd } from '@mui/icons-material';
 import { Header } from '../../components/common/Header';
 import { uploadXray } from '../../services/xrayService';
 import { usePatients } from '../../hooks/usePatients';
 import { useNotification } from '../../context/NotificationContext';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { setUploadedImage, setLandmarks } from '../../redux/aiSlice';
+import { setUploadedImage, setLandmarks, setCurrentPatient } from '../../redux/aiSlice';
 import { detectLandmarks } from '../../services/aiService';
 
 const WORKFLOW_STEPS = [
@@ -27,13 +27,28 @@ export const XRayUploadPage = () => {
   const { showNotification } = useNotification();
   const { uploadedImageUrl, uploadedImageName } = useSelector((state) => state.ai);
 
-  const [selectedPatientId, setSelectedPatientId] = useState('PAT-2026-001');
+  const [selectedPatientId, setSelectedPatientId] = useState('');
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(uploadedImageUrl || null);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [activeStep, setActiveStep] = useState(previewUrl ? 1 : 0);
   const [detectionConfidence, setDetectionConfidence] = useState(null);
+
+  useEffect(() => {
+    if (patients.length > 0 && !selectedPatientId) {
+      setSelectedPatientId(patients[0].patientId);
+      dispatch(setCurrentPatient(patients[0]));
+    }
+  }, [patients]);
+
+  const handlePatientChange = (patientId) => {
+    setSelectedPatientId(patientId);
+    const selected = patients.find(p => p.patientId === patientId);
+    if (selected) {
+      dispatch(setCurrentPatient(selected));
+    }
+  };
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -70,6 +85,10 @@ export const XRayUploadPage = () => {
     if (e) e.preventDefault();
     if (!file && !previewUrl) {
       showNotification('Please select or drop an X-ray radiograph file first', 'warning');
+      return;
+    }
+    if (!selectedPatientId) {
+      showNotification('Please select a target patient chart or create a new patient record first', 'warning');
       return;
     }
 
@@ -140,23 +159,30 @@ export const XRayUploadPage = () => {
               <Typography variant="subtitle1" fontWeight={700} color="primary.main" mb={1}>
                 Target Patient Medical Chart:
               </Typography>
-              <TextField
-                select
-                fullWidth
-                value={selectedPatientId}
-                onChange={(e) => setSelectedPatientId(e.target.value)}
-                margin="dense"
-                label="Select Patient Record"
-              >
-                {patients.map((p) => (
-                  <MenuItem key={p.patientId} value={p.patientId}>
-                    {p.name} ({p.patientId}) - {p.cvmStage || 'CVM 3'} ({p.age} yrs, {p.gender})
-                  </MenuItem>
-                ))}
-                {patients.length === 0 && (
-                  <MenuItem value="PAT-2026-001">Emily Vance (PAT-2026-001) - CVM 3 (10 yrs, Female)</MenuItem>
-                )}
-              </TextField>
+              
+              {patients.length > 0 ? (
+                <TextField
+                  select
+                  fullWidth
+                  value={selectedPatientId}
+                  onChange={(e) => handlePatientChange(e.target.value)}
+                  margin="dense"
+                  label="Select Patient Record"
+                >
+                  {patients.map((p) => (
+                    <MenuItem key={p.patientId} value={p.patientId}>
+                      {p.name} ({p.patientId}) - {p.cvmStage || 'CVM 3'} ({p.age} yrs, {p.gender})
+                    </MenuItem>
+                  ))}
+                </TextField>
+              ) : (
+                <Alert severity="warning" sx={{ mb: 2, borderRadius: '12px' }}>
+                  No patient records found in your Firestore database.{' '}
+                  <Button size="small" color="primary" onClick={() => navigate('/patients/add')} startIcon={<PersonAdd />}>
+                    Add First Patient Record
+                  </Button>
+                </Alert>
+              )}
 
               {/* Drag and Drop Zone */}
               <Box
@@ -205,7 +231,7 @@ export const XRayUploadPage = () => {
                 fullWidth
                 variant="contained"
                 size="large"
-                disabled={uploading || (!file && !previewUrl)}
+                disabled={uploading || (!file && !previewUrl) || !selectedPatientId}
                 startIcon={<AutoAwesome />}
                 sx={{ py: 1.5, borderRadius: '12px', fontWeight: 700 }}
               >

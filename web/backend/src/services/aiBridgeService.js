@@ -19,10 +19,11 @@ const BASE_LANDMARKS = {
   po: { name: 'Porion (Po)', x: 170, y: 170, confidence: 0.89 }
 };
 
-const detectLandmarks = async (xrayId, imageUrl) => {
+const detectLandmarks = async (xrayId, imageUrl, doctorId = null) => {
   try {
     const response = await axios.post(`${config.aiServiceUrl}/detect-landmarks`, { xrayId, imageUrl }, { timeout: 3000 });
     const result = response.data;
+    if (doctorId) result.doctorId = doctorId;
     await saveToFirestore('landmarks', xrayId, result);
     inMemoryStore.landmarks.set(xrayId, result);
     return result;
@@ -58,6 +59,7 @@ const detectLandmarks = async (xrayId, imageUrl) => {
     const result = {
       xrayId,
       imageUrl,
+      doctorId,
       landmarks: dynamicLandmarks,
       overallConfidence,
       landmarkCount: 11,
@@ -70,12 +72,13 @@ const detectLandmarks = async (xrayId, imageUrl) => {
   }
 };
 
-const calculateMeasurements = async (patientId, landmarks) => {
+const calculateMeasurements = async (patientId, landmarks, doctorId = null) => {
   const lm = landmarks || BASE_LANDMARKS;
   const cephalometrics = calculateCephalometrics(lm);
   
   const result = {
     patientId,
+    doctorId,
     measurements: cephalometrics,
     calculatedAt: new Date().toISOString()
   };
@@ -86,11 +89,13 @@ const calculateMeasurements = async (patientId, landmarks) => {
 };
 
 const predictBampOutcome = async (patientData) => {
+  const doctorId = patientData.doctorId || null;
   try {
     const response = await axios.post(`${config.aiServiceUrl}/predict`, patientData, { timeout: 4000 });
     const result = response.data;
     result.predictionId = `PRED-${Date.now()}`;
-    result.patientId = patientData.patientId || 'PAT-2026-001';
+    result.patientId = patientData.patientId || 'PAT-001';
+    if (doctorId) result.doctorId = doctorId;
     result.predictedAt = new Date().toISOString();
 
     await saveToFirestore('predictions', result.predictionId, result);
@@ -139,6 +144,7 @@ const predictBampOutcome = async (patientData) => {
     const result = {
       predictionId: `PRED-${Date.now()}`,
       patientId: patientData.patientId || 'PAT-001',
+      doctorId,
       successProbability,
       confidenceScore: 0.94,
       riskLevel,

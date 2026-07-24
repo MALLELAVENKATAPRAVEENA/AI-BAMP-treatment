@@ -1,55 +1,81 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Grid, Card, CardContent, Typography, Chip, LinearProgress, Paper } from '@mui/material';
-import { AutoAwesome, ArrowForward, Analytics, CheckCircle, Warning, Speed } from '@mui/icons-material';
+import { Box, Button, Grid, Card, CardContent, Typography, Chip, LinearProgress, Paper, Alert } from '@mui/material';
+import { AutoAwesome, ArrowForward, PersonAdd } from '@mui/icons-material';
 import { Header } from '../../components/common/Header';
 import { PredictionCard } from '../../components/ai/PredictionCard';
 import { predictBampOutcome } from '../../services/aiService';
 import { useNotification } from '../../context/NotificationContext';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { usePatients } from '../../hooks/usePatients';
 
 export const PredictionResultsPage = () => {
   const navigate = useNavigate();
   const { showNotification } = useNotification();
-  const { landmarks } = useSelector((state) => state.ai);
+  const { landmarks, currentPatient } = useSelector((state) => state.ai);
+  const { patients } = usePatients();
 
-  // Active Patient details state
-  const [patient, setPatient] = useState({
-    patientId: 'PAT-2026-001',
-    name: 'Emily Vance',
-    age: 10,
-    gender: 'Female',
-    cvmStage: 'CVM 3',
-    growthPotential: 'High'
-  });
+  const activePatient = currentPatient || (patients.length > 0 ? patients[0] : null);
 
   const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    handleRunPredictor();
-  }, []);
+    if (activePatient) {
+      handleRunPredictor(activePatient);
+    }
+  }, [activePatient]);
 
-  const handleRunPredictor = async () => {
+  const handleRunPredictor = async (pTarget) => {
+    const target = pTarget || activePatient;
+    if (!target) return;
+
     setLoading(true);
     try {
       const res = await predictBampOutcome({
-        patientId: patient.patientId,
-        age: patient.age,
-        gender: patient.gender,
-        cvmStage: patient.cvmStage,
-        growthPotential: patient.growthPotential,
+        patientId: target.patientId,
+        age: target.age || 10,
+        gender: target.gender || 'Female',
+        cvmStage: target.cvmStage || 'CVM 3',
+        growthPotential: target.growthPotential || 'High',
         landmarks
       });
       
       setPrediction(res.data);
-      showNotification(`AI Prediction Computed: ${res.data?.successProbability}% Success Probability (${res.data?.riskLevel})`, 'success');
+      showNotification(`AI Prediction Computed for ${target.name}: ${res.data?.successProbability}% Success Probability (${res.data?.riskLevel})`, 'success');
     } catch (err) {
       showNotification('Recalculated AI BAMP outcome probability', 'info');
     } finally {
       setLoading(false);
     }
   };
+
+  if (!activePatient) {
+    return (
+      <Box>
+        <Header
+          title="AI Ensemble BAMP Outcome Prediction"
+          subtitle="Random Forest + XGBoost Voting Ensemble evaluating success probability for Class III maxillary protraction based on patient demographics and cephalometric math."
+        />
+        <Card sx={{ p: 5, textAlign: 'center', borderRadius: '16px' }}>
+          <Typography variant="h6" fontWeight={700} color="text.secondary" mb={1}>
+            No Active Patient Chart Selected
+          </Typography>
+          <Typography variant="body2" color="gray" mb={3}>
+            Please select or register a patient record in your Firestore database to compute AI treatment outcome predictions.
+          </Typography>
+          <Button
+            variant="contained"
+            startIcon={<PersonAdd />}
+            onClick={() => navigate('/patients/add')}
+            sx={{ borderRadius: '12px', fontWeight: 700 }}
+          >
+            Add Patient Record
+          </Button>
+        </Card>
+      </Box>
+    );
+  }
 
   return (
     <Box>
@@ -63,11 +89,11 @@ export const PredictionResultsPage = () => {
           variant="contained"
           size="large"
           startIcon={<AutoAwesome />}
-          onClick={handleRunPredictor}
+          onClick={() => handleRunPredictor(activePatient)}
           disabled={loading}
           sx={{ borderRadius: '12px', fontWeight: 700 }}
         >
-          {loading ? 'Running ML Inference...' : 'Recalculate AI Prediction'}
+          {loading ? 'Running ML Inference...' : `Recalculate AI Prediction for ${activePatient.name}`}
         </Button>
 
         {prediction && (
@@ -87,7 +113,7 @@ export const PredictionResultsPage = () => {
             <Card sx={{ p: 4, borderRadius: '16px', textAlign: 'center' }}>
               <LinearProgress sx={{ borderRadius: '8px', height: '8px', mb: 2 }} />
               <Typography variant="body1" color="text.secondary">
-                Running Random Forest + XGBoost Voting Ensemble inference...
+                Running Random Forest + XGBoost Voting Ensemble inference for {activePatient.name}...
               </Typography>
             </Card>
           )}
@@ -99,10 +125,11 @@ export const PredictionResultsPage = () => {
               <Typography variant="subtitle1" fontWeight={700} mb={1}>
                 Active Patient Medical Chart
               </Typography>
-              <Typography variant="body2" color="#94a3b8">Patient Name: <strong>{patient.name}</strong></Typography>
-              <Typography variant="body2" color="#94a3b8">Age / Gender: <strong>{patient.age} yrs, {patient.gender}</strong></Typography>
-              <Typography variant="body2" color="#94a3b8">Maturation Stage: <strong style={{ color: '#38bdf8' }}>{patient.cvmStage}</strong></Typography>
-              <Typography variant="body2" color="#94a3b8">Growth Potential: <strong style={{ color: '#4ade80' }}>{patient.growthPotential}</strong></Typography>
+              <Typography variant="body2" color="#94a3b8">Patient ID: <strong style={{ color: '#38bdf8' }}>{activePatient.patientId}</strong></Typography>
+              <Typography variant="body2" color="#94a3b8">Patient Name: <strong>{activePatient.name}</strong></Typography>
+              <Typography variant="body2" color="#94a3b8">Age / Gender: <strong>{activePatient.age} yrs, {activePatient.gender}</strong></Typography>
+              <Typography variant="body2" color="#94a3b8">Maturation Stage: <strong style={{ color: '#38bdf8' }}>{activePatient.cvmStage || 'CVM 3'}</strong></Typography>
+              <Typography variant="body2" color="#94a3b8">Growth Potential: <strong style={{ color: '#4ade80' }}>{activePatient.growthPotential || 'High'}</strong></Typography>
             </Paper>
 
             <Button

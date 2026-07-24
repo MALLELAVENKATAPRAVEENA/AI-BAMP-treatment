@@ -8,7 +8,7 @@ if (!fs.existsSync(reportsDir)) {
   fs.mkdirSync(reportsDir, { recursive: true });
 }
 
-const generatePDFReport = async (patient, prediction, cephalometrics, doctorNotes = '') => {
+const generatePDFReport = async (patient, prediction, cephalometrics, doctorNotes = '', doctorId = null) => {
   return new Promise((resolve, reject) => {
     try {
       const reportId = `REP-${Date.now()}`;
@@ -20,8 +20,8 @@ const generatePDFReport = async (patient, prediction, cephalometrics, doctorNote
       doc.pipe(stream);
 
       // Colors
-      const primaryNavy = '#1E3A8A'; // Deep Medical Navy
-      const secondaryTeal = '#0D9488'; // Clinical Teal
+      const primaryNavy = '#1E3A8A';
+      const secondaryTeal = '#0D9488';
       const darkSlate = '#334155';
       const lightBg = '#F8FAFC';
       const successGreen = '#16A34A';
@@ -58,7 +58,7 @@ const generatePDFReport = async (patient, prediction, cephalometrics, doctorNote
       doc.fillColor('#000000').text(`${patient.age || '10'} yrs / ${patient.gender || 'Female'}`, 120, yDemo + 42);
 
       doc.fillColor(darkSlate).text(`CVM Maturation:`, 300, yDemo + 10, { bold: true });
-      doc.fillColor(primaryNavy).text(`${patient.cvmStage || 'CVM 3'} (Peak Growth)`, 390, yDemo + 10, { bold: true });
+      doc.fillColor(primaryNavy).text(`${patient.cvmStage || 'CVM 3'}`, 390, yDemo + 10, { bold: true });
 
       doc.fillColor(darkSlate).text(`Skeletal Age:`, 300, yDemo + 26, { bold: true });
       doc.fillColor('#000000').text(`${patient.skeletalAge || patient.age || '10.5'} yrs`, 390, yDemo + 26);
@@ -144,11 +144,7 @@ const generatePDFReport = async (patient, prediction, cephalometrics, doctorNote
       doc.y = doc.y + 10;
       const yShap = doc.y;
 
-      const shapItems = prediction?.featureImportance || [
-        { feature: 'CVM Growth Stage (CVM 3)', importance: 0.35 },
-        { feature: 'ANB Discrepancy (-1.6°)', importance: 0.25 },
-        { feature: 'Chronological & Skeletal Age', importance: 0.18 }
-      ];
+      const shapItems = prediction?.featureImportance || [];
 
       shapItems.slice(0, 4).forEach((item, idx) => {
         const itemY = yShap + (idx * 16);
@@ -190,6 +186,7 @@ const generatePDFReport = async (patient, prediction, cephalometrics, doctorNote
         const reportRecord = {
           reportId,
           patientId: patient.patientId || 'PAT-001',
+          doctorId: doctorId || patient.doctorId,
           fileName,
           downloadUrl: `/reports/${fileName}`,
           createdAt: new Date().toISOString()

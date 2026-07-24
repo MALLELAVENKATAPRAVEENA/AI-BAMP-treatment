@@ -3,7 +3,8 @@ const { sendSuccess, sendError } = require('../utils/responseHandler');
 
 const getPatients = async (req, res, next) => {
   try {
-    const patients = await patientService.getAllPatients(req.query);
+    const doctorId = req.user?.uid || req.user?.id;
+    const patients = await patientService.getAllPatients(doctorId);
     return sendSuccess(res, 'Patients retrieved successfully', patients);
   } catch (error) {
     return sendError(res, error.message, 500);
@@ -12,7 +13,8 @@ const getPatients = async (req, res, next) => {
 
 const getPatientById = async (req, res, next) => {
   try {
-    const patient = await patientService.getPatientById(req.params.id);
+    const doctorId = req.user?.uid || req.user?.id;
+    const patient = await patientService.getPatientById(req.params.id, doctorId);
     if (!patient) {
       return sendError(res, 'Patient Not Found', 404);
     }
@@ -24,7 +26,8 @@ const getPatientById = async (req, res, next) => {
 
 const createPatient = async (req, res, next) => {
   try {
-    const newPatient = await patientService.createPatient(req.body);
+    const doctorId = req.user?.uid || req.user?.id;
+    const newPatient = await patientService.createPatient(req.body, doctorId);
     return sendSuccess(res, 'Patient record created successfully', newPatient, 201);
   } catch (error) {
     return sendError(res, error.message, 400);
@@ -33,7 +36,8 @@ const createPatient = async (req, res, next) => {
 
 const updatePatient = async (req, res, next) => {
   try {
-    const updated = await patientService.updatePatient(req.params.id, req.body);
+    const doctorId = req.user?.uid || req.user?.id;
+    const updated = await patientService.updatePatient(req.params.id, req.body, doctorId);
     return sendSuccess(res, 'Patient record updated successfully', updated);
   } catch (error) {
     return sendError(res, error.message, 400);
@@ -42,7 +46,8 @@ const updatePatient = async (req, res, next) => {
 
 const deletePatient = async (req, res, next) => {
   try {
-    await patientService.deletePatient(req.params.id);
+    const doctorId = req.user?.uid || req.user?.id;
+    await patientService.deletePatient(req.params.id, doctorId);
     return sendSuccess(res, 'Patient record deleted successfully');
   } catch (error) {
     return sendError(res, error.message, 400);

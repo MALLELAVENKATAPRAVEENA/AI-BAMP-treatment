@@ -5,6 +5,7 @@ const saveXrayMetadata = async (xrayData) => {
   const record = {
     xrayId,
     patientId: xrayData.patientId,
+    doctorId: xrayData.doctorId,
     filename: xrayData.filename,
     originalName: xrayData.originalName,
     mimeType: xrayData.mimeType,
@@ -25,16 +26,26 @@ const saveXrayMetadata = async (xrayData) => {
   return record;
 };
 
-const getXrayById = async (xrayId) => {
+const getXrayById = async (xrayId, doctorId) => {
   try {
     if (db) {
       const doc = await db.collection('xrays').doc(xrayId).get();
-      if (doc.exists) return doc.data();
+      if (doc.exists) {
+        const data = doc.data();
+        if (!doctorId || data.doctorId === doctorId) {
+          return data;
+        }
+      }
     }
   } catch (e) {
     console.warn('Fallback to in-memory xray lookup');
   }
-  return inMemoryStore.xrays.get(xrayId) || null;
+  
+  const inMem = inMemoryStore.xrays.get(xrayId);
+  if (inMem && (!doctorId || inMem.doctorId === doctorId)) {
+    return inMem;
+  }
+  return null;
 };
 
 module.exports = {
