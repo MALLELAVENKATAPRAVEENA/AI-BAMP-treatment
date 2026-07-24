@@ -26,8 +26,6 @@ import { XRayUploadPage } from '../pages/ai/XRayUploadPage';
 import { LandmarkDetectionPage } from '../pages/ai/LandmarkDetectionPage';
 import { CephalometricAnalysisPage } from '../pages/ai/CephalometricAnalysisPage';
 import { PredictionResultsPage } from '../pages/ai/PredictionResultsPage';
-import { SHAPExplanationPage } from '../pages/ai/SHAPExplanationPage';
-import { Craniofacial3DPage } from '../pages/ai/Craniofacial3DPage';
 import { AIChatPage } from '../pages/ai/AIChatPage';
 
 // Reports
@@ -71,8 +69,6 @@ export const AppRoutes = () => {
           <Route path="/ai/landmark-detection" element={<LandmarkDetectionPage />} />
           <Route path="/ai/cephalometric-analysis" element={<CephalometricAnalysisPage />} />
           <Route path="/ai/prediction-results" element={<PredictionResultsPage />} />
-          <Route path="/ai/shap-explanation" element={<SHAPExplanationPage />} />
-          <Route path="/ai/3d-visualization" element={<Craniofacial3DPage />} />
           <Route path="/ai/chat" element={<AIChatPage />} />
 
           {/* Reports */}

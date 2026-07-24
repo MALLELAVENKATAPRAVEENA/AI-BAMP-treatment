@@ -1,5 +1,13 @@
 const { db, inMemoryStore } = require('../config/firebaseAdmin');
 
+const validateAge = (age) => {
+  const numAge = Number(age);
+  if (isNaN(numAge) || numAge < 8 || numAge > 25) {
+    throw new Error('Patient age must be between 8 and 25 years for BAMP treatment analysis.');
+  }
+  return numAge;
+};
+
 const getAllPatients = async (doctorId) => {
   try {
     if (db && doctorId) {
@@ -43,13 +51,15 @@ const getPatientById = async (patientId, doctorId) => {
 };
 
 const createPatient = async (patientData, doctorId) => {
+  const validAge = validateAge(patientData.age || 10);
   const patientId = `PAT-${Date.now()}`;
+  
   const newPatient = {
     patientId,
     doctorId: doctorId || patientData.doctorId,
     patientName: patientData.patientName || patientData.name || 'Patient Record',
     name: patientData.name || patientData.patientName || 'Patient Record',
-    age: Number(patientData.age || 10),
+    age: validAge,
     gender: patientData.gender || 'Female',
     cvmStage: patientData.cvmStage || 'CVM 3',
     growthPotential: patientData.growthPotential || 'High',
@@ -79,6 +89,10 @@ const updatePatient = async (patientId, updateData, doctorId) => {
   const existing = await getPatientById(patientId, doctorId);
   if (!existing) {
     throw new Error('Patient record not found or unauthorized');
+  }
+
+  if (updateData.age !== undefined) {
+    validateAge(updateData.age);
   }
 
   const updated = {

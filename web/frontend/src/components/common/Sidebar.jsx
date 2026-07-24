@@ -5,7 +5,7 @@ import {
 } from '@mui/material';
 import {
   Dashboard, People, CloudUpload, Polyline, Insights, Assessment,
-  ViewInAr, Description, Settings, Menu, ChevronLeft, SmartToy
+  Description, Settings, Menu, ChevronLeft, SmartToy
 } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -54,8 +54,6 @@ export const Sidebar = () => {
         { label: 'Landmark Detection Overlay', icon: <Polyline />, path: '/ai/landmark-detection' },
         { label: 'Cephalometric Measurements', icon: <Assessment />, path: '/ai/cephalometric-analysis' },
         { label: 'AI Outcome Predictor', icon: <Insights />, path: '/ai/prediction-results' },
-        { label: 'SHAP Feature Drivers', icon: <Insights />, path: '/ai/shap-explanation' },
-        { label: '3D Craniofacial AI Mesh', icon: <ViewInAr />, path: '/ai/3d-visualization' },
         { label: 'AI Assistant Chatbot', icon: <SmartToy />, path: '/ai/chat' }
       ]
     },

@@ -16,25 +16,29 @@ export const LoginPage = () => {
 
   const { control, handleSubmit, formState: { errors, isSubmitting } } = useForm({
     resolver: yupResolver(loginSchema),
-    defaultValues: { email: '', password: '' }
+    defaultValues: { mobileNumber: '', password: '' }
   });
 
   const onSubmit = async (data) => {
     try {
-      const res = await login(data);
+      const res = await login({
+        email: data.mobileNumber,
+        mobileNumber: data.mobileNumber,
+        password: data.password
+      });
       if (res.data?.token && res.data?.user) {
         loginUser(res.data.user, res.data.token);
-        showNotification('Login Successful', 'success');
+        showNotification('Orthodontist Sign In Successful', 'success');
         navigate('/dashboard');
       } else {
         throw new Error('Authentication failed');
       }
     } catch (err) {
-      const msg = err.message || 'Login Failed';
+      const msg = err.message || 'Sign In Failed';
       if (msg.includes('Password')) {
         showNotification('Invalid Password', 'error');
       } else if (msg.includes('Not Found')) {
-        showNotification('User Not Found. Please Register First.', 'error');
+        showNotification('Phone Number Not Registered. Please Register First.', 'error');
       } else {
         showNotification(msg, 'error');
       }
@@ -49,21 +53,22 @@ export const LoginPage = () => {
           AI BAMP Outcome Predictor
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Class III Malocclusion Clinical & Diagnostic Portal
+          Class III Malocclusion Clinical Portal
         </Typography>
       </Box>
 
       <Controller
-        name="email"
+        name="mobileNumber"
         control={control}
         render={({ field }) => (
           <TextField
             {...field}
             fullWidth
-            label="Email Address"
+            label="Registered Phone Number"
+            placeholder="+1 555-0199"
             margin="normal"
-            error={!!errors.email}
-            helperText={errors.email?.message}
+            error={!!errors.mobileNumber}
+            helperText={errors.mobileNumber?.message}
           />
         )}
       />
@@ -86,8 +91,8 @@ export const LoginPage = () => {
 
       <Box display="flex" justifyContent="space-between" alignItems="center" mt={1}>
         <FormControlLabel control={<Checkbox defaultChecked color="primary" />} label="Remember Me" />
-        <Link sx={{ cursor: 'pointer', fontSize: 14 }} onClick={() => navigate('/forgot-password')}>
-          Forgot Password?
+        <Link sx={{ cursor: 'pointer', fontSize: 14, fontWeight: 700 }} onClick={() => navigate('/forgot-password')}>
+          Forgot Password via OTP?
         </Link>
       </Box>
 
@@ -96,17 +101,17 @@ export const LoginPage = () => {
         fullWidth
         variant="contained"
         size="large"
-        sx={{ mt: 3, py: 1.2 }}
+        sx={{ mt: 3, py: 1.2, borderRadius: '12px', fontWeight: 700 }}
         disabled={isSubmitting}
       >
-        {isSubmitting ? 'Authenticating with Firebase...' : 'Sign In to Portal'}
+        {isSubmitting ? 'Authenticating Phone Number...' : 'Sign In to Portal'}
       </Button>
 
       <Box textAlign="center" mt={3}>
         <Typography variant="body2">
-          Don't have a medical account?{' '}
+          Don't have an Orthodontist account?{' '}
           <Link sx={{ cursor: 'pointer', fontWeight: 700 }} onClick={() => navigate('/signup')}>
-            Register Now
+            Register with Phone & OTP
           </Link>
         </Typography>
       </Box>
