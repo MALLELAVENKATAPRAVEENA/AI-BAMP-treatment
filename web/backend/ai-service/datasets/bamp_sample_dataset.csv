@@ -1,0 +1,11 @@
+Patient_ID,Age,Gender,CVM_Stage,SNA_deg,SNB_deg,ANB_deg,Wits_mm,FMA_deg,Success_Probability,Outcome_Category
+BAMP-DATA-1001,10.2,Female,CVM 3,80.1,83.4,-3.3,-4.1,24.8,92.5,Success
+BAMP-DATA-1002,11.8,Male,CVM 4,78.9,84.2,-5.3,-5.2,28.1,76.4,Moderate Risk
+BAMP-DATA-1003,9.5,Female,CVM 2,81.5,82.1,-0.6,-2.1,23.5,95.8,Success
+BAMP-DATA-1004,13.8,Male,CVM 5,77.2,85.1,-7.9,-7.5,31.2,54.2,High Risk
+BAMP-DATA-1005,10.6,Female,CVM 3,82.4,83.9,-1.5,-2.8,25.0,94.1,Success
+BAMP-DATA-1006,12.1,Male,CVM 3,79.0,84.5,-5.5,-4.8,27.2,88.4,Success
+BAMP-DATA-1007,8.9,Female,CVM 1,83.1,83.5,-0.4,-1.8,22.9,89.2,Success
+BAMP-DATA-1008,14.2,Female,CVM 5,76.8,86.0,-9.2,-8.1,32.0,48.5,High Risk
+BAMP-DATA-1009,11.3,Male,CVM 3,81.0,83.0,-2.0,-3.1,26.4,93.0,Success
+BAMP-DATA-1010,10.0,Female,CVM 2,80.5,82.8,-2.3,-3.0,24.1,94.5,Success
