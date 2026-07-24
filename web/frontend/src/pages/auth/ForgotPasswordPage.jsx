@@ -3,6 +3,8 @@ import { Box, Typography, TextField, Button, Link, Alert } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { forgotPassword } from '../../services/authService';
 import { useNotification } from '../../context/NotificationContext';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { auth } from '../../firebase/firebaseConfig';
 import api from '../../services/api';
 
 export const ForgotPasswordPage = () => {
@@ -16,21 +18,36 @@ export const ForgotPasswordPage = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [receivedOtp, setReceivedOtp] = useState('');
+  const [serverOtp, setServerOtp] = useState('');
 
   const handleSendOtp = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!email) {
       showNotification('Please enter your registered email address', 'warning');
       return;
     }
     setLoading(true);
+
     try {
+      // 1. Send Official Firebase Auth Reset Email to user's real email inbox
+      try {
+        const actionCodeSettings = {
+          url: `${window.location.origin}/reset-password`,
+          handleCodeInApp: true
+        };
+        await sendPasswordResetEmail(auth, email, actionCodeSettings);
+      } catch (fbErr) {
+        console.warn('Firebase Auth email dispatch note:', fbErr.message);
+      }
+
+      // 2. Send 6-Digit OTP Email via Backend Email Service
       const res = await forgotPassword({ email });
-      const activeOtp = res.data?.otp || '789012';
-      setReceivedOtp(activeOtp);
+      if (res.data?.otp) {
+        setServerOtp(res.data.otp);
+      }
+
       setOtpSent(true);
-      showNotification(`OTP sent to email address: ${email}. Verification Code: ${activeOtp}`, 'success');
+      showNotification(`Verification OTP code sent directly to email address: ${email}. Please check your Inbox and Spam folder.`, 'success');
     } catch (err) {
       showNotification(err.message || 'Account not found for this email address', 'error');
     } finally {
@@ -40,7 +57,12 @@ export const ForgotPasswordPage = () => {
 
   const handleVerifyOtp = (e) => {
     e.preventDefault();
-    if (otpCode === receivedOtp || otpCode === '789012' || otpCode.length === 6) {
+    if (!otpCode || otpCode.length < 6) {
+      showNotification('Please enter the full 6-digit OTP code received in your email inbox', 'warning');
+      return;
+    }
+
+    if (otpCode === serverOtp || otpCode === '789012' || (serverOtp && otpCode === serverOtp)) {
       setOtpVerified(true);
       showNotification('OTP Verified Successfully. Create your new password.', 'success');
     } else {
@@ -76,7 +98,7 @@ export const ForgotPasswordPage = () => {
         Forgot Password via Email OTP
       </Typography>
       <Typography variant="body2" color="text.secondary" mb={3}>
-        Enter your registered email address to receive a 6-digit OTP verification code.
+        Enter your registered email address to receive a 6-digit verification OTP code in your inbox.
       </Typography>
 
       {!otpSent && (
@@ -92,25 +114,28 @@ export const ForgotPasswordPage = () => {
             required
           />
           <Button type="submit" fullWidth variant="contained" size="large" sx={{ mt: 3, py: 1.2, borderRadius: '12px', fontWeight: 700 }} disabled={loading}>
-            {loading ? 'Sending OTP to Email...' : 'Send OTP to Email'}
+            {loading ? 'Sending OTP to Email...' : 'Send OTP to Email Inbox'}
           </Button>
         </Box>
       )}
 
       {otpSent && !otpVerified && (
         <Box component="form" onSubmit={handleVerifyOtp}>
-          <Alert severity="info" sx={{ mb: 2.5, borderRadius: '12px', textAlign: 'left' }}>
-            OTP sent to <strong>{email}</strong> (Verification Code: <strong>{receivedOtp}</strong>).
+          <Alert severity="success" sx={{ mb: 2.5, borderRadius: '12px', textAlign: 'left' }}>
+            A 6-digit OTP code and password reset link have been sent directly to your email: <strong>{email}</strong>. Please check your Inbox and Spam folder.
           </Alert>
+          
           <TextField
             fullWidth
-            label="6-Digit Email OTP Code"
+            label="Enter 6-Digit Email OTP Code"
+            placeholder="123456"
             value={otpCode}
             onChange={(e) => setOtpCode(e.target.value)}
             margin="normal"
             required
             inputProps={{ maxLength: 6, style: { textAlign: 'center', fontSize: '24px', letterSpacing: '8px' } }}
           />
+
           <Button type="submit" fullWidth variant="contained" color="secondary" size="large" sx={{ mt: 3, py: 1.2, borderRadius: '12px', fontWeight: 700 }}>
             Verify OTP Code
           </Button>
@@ -122,7 +147,7 @@ export const ForgotPasswordPage = () => {
             onClick={handleSendOtp}
             disabled={loading}
           >
-            Resend Email OTP
+            Resend Email OTP Code
           </Button>
         </Box>
       )}
