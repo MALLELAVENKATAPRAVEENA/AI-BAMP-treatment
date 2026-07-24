@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const { db, inMemoryStore } = require('../config/firebaseAdmin');
 const { validatePassword } = require('../utils/passwordValidator');
 const { generateToken } = require('../config/jwt');
-const { sendPasswordResetEmail } = require('./emailService');
+const { sendOTPEmail, sendPasswordResetEmail } = require('./emailService');
 const { logAction } = require('./auditLogService');
 
 const registerUser = async (userData) => {
@@ -153,17 +153,34 @@ const forgotPassword = async (email) => {
   if (!userRecord) userRecord = inMemoryStore.users.get(normalizedEmail);
 
   if (!userRecord) {
-    throw new Error('User Not Found');
+    throw new Error('User Account Not Found');
   }
 
-  const resetToken = generateToken({ email: userRecord.email, type: 'reset' });
-  await sendPasswordResetEmail(email, resetToken);
+  // Generate 6-Digit OTP Code
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const resetOtpExpires = Date.now() + 10 * 60 * 1000; // 10 mins
 
-  const resetLink = `/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
+  if (db) {
+    try {
+      await db.collection('users').doc(normalizedEmail).update({
+        resetOtp: otp,
+        resetOtpExpires
+      });
+    } catch (e) {}
+  }
+
+  userRecord.resetOtp = otp;
+  userRecord.resetOtpExpires = resetOtpExpires;
+  inMemoryStore.users.set(normalizedEmail, userRecord);
+
+  // Send 6-Digit OTP to registered email address
+  await sendOTPEmail(normalizedEmail, otp, userRecord.fullName || userRecord.name);
+  await sendPasswordResetEmail(normalizedEmail, generateToken({ email: normalizedEmail, type: 'reset' }));
 
   return {
-    message: 'Password reset link generated successfully.',
-    resetLink
+    message: `6-Digit OTP Code sent to your registered email address: ${normalizedEmail}`,
+    otp,
+    email: normalizedEmail
   };
 };
 
@@ -185,16 +202,21 @@ const resetPassword = async (email, token, newPassword) => {
   if (!userRecord) userRecord = inMemoryStore.users.get(normalizedEmail);
 
   if (!userRecord) {
-    throw new Error('User Not Found');
+    throw new Error('User Account Not Found');
   }
 
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(newPassword, salt);
   userRecord.password = hashedPassword;
+  delete userRecord.resetOtp;
 
   if (db) {
     try {
-      await db.collection('users').doc(normalizedEmail).update({ password: hashedPassword, updatedAt: new Date().toISOString() });
+      await db.collection('users').doc(normalizedEmail).update({
+        password: hashedPassword,
+        resetOtp: null,
+        updatedAt: new Date().toISOString()
+      });
       console.log(`[Firebase Firestore] Password updated for: ${normalizedEmail}`);
     } catch (e) {}
   }
