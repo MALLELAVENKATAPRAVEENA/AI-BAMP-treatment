@@ -104,7 +104,7 @@ const loginUser = async (email, password) => {
   }
 
   if (!userRecord) {
-    throw new Error('User Not Found');
+    throw new Error('User Account Not Found');
   }
 
   const isMatch = await bcrypt.compare(password, userRecord.password);
@@ -140,7 +140,10 @@ const loginUser = async (email, password) => {
   return { token, user: safeUser };
 };
 
-const forgotPassword = async (email) => {
+// In-Memory OTP Store Fallback
+const otpStore = new Map();
+
+const requestPasswordReset = async (email) => {
   const normalizedEmail = email.toLowerCase();
   let userRecord = null;
 
@@ -156,79 +159,157 @@ const forgotPassword = async (email) => {
     throw new Error('User Account Not Found');
   }
 
-  // Generate 6-Digit OTP Code
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const resetOtpExpires = Date.now() + 10 * 60 * 1000; // 10 mins
+  // Generate secure 6-digit OTP
+  const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const createdAt = new Date().toISOString();
+  const expiresAt = Date.now() + 10 * 60 * 1000; // 10 Minutes validity
 
+  const otpRecord = {
+    email: normalizedEmail,
+    otpCode,
+    createdAt,
+    expiresAt,
+    used: false
+  };
+
+  // Save to Firestore 'password_reset_otps' collection
   if (db) {
     try {
-      await db.collection('users').doc(normalizedEmail).update({
-        resetOtp: otp,
-        resetOtpExpires
-      });
-    } catch (e) {}
+      await db.collection('password_reset_otps').doc(normalizedEmail).set(otpRecord);
+      console.log(`[Firestore] Secure OTP saved in 'password_reset_otps' for: ${normalizedEmail}`);
+    } catch (e) {
+      console.warn('[Firestore] OTP save fallback:', e.message);
+    }
   }
+  otpStore.set(normalizedEmail, otpRecord);
 
-  userRecord.resetOtp = otp;
-  userRecord.resetOtpExpires = resetOtpExpires;
-  inMemoryStore.users.set(normalizedEmail, userRecord);
+  // Send Email with exact template
+  await sendPasswordResetEmail(normalizedEmail, otpCode);
 
-  // Send 6-Digit OTP to registered email address
-  await sendOTPEmail(normalizedEmail, otp, userRecord.fullName || userRecord.name);
-  await sendPasswordResetEmail(normalizedEmail, generateToken({ email: normalizedEmail, type: 'reset' }));
+  await logAction({
+    userId: userRecord.uid || 'system',
+    userName: userRecord.fullName || userRecord.name || 'User',
+    role: userRecord.role || 'Orthodontist',
+    action: 'PASSWORD_RESET_OTP_REQUESTED',
+    target: normalizedEmail
+  });
 
+  // Do NOT return OTP in response body
   return {
-    message: `6-Digit OTP Code sent to your registered email address: ${normalizedEmail}`,
-    otp,
-    email: normalizedEmail
+    success: true,
+    message: 'Password reset verification code sent to your registered email address.'
   };
 };
 
-const resetPassword = async (email, token, newPassword) => {
+const verifyPasswordResetOtp = async (email, otpCode) => {
+  const normalizedEmail = email.toLowerCase();
+  let record = null;
+
+  if (db) {
+    try {
+      const doc = await db.collection('password_reset_otps').doc(normalizedEmail).get();
+      if (doc.exists) record = doc.data();
+    } catch (e) {}
+  }
+  if (!record) record = otpStore.get(normalizedEmail);
+
+  if (!record || record.used) {
+    throw new Error('Invalid OTP');
+  }
+
+  if (Date.now() > record.expiresAt) {
+    throw new Error('OTP expired. Request a new OTP.');
+  }
+
+  if (record.otpCode !== otpCode) {
+    throw new Error('Invalid OTP');
+  }
+
+  return {
+    valid: true,
+    message: 'OTP verified successfully.'
+  };
+};
+
+const confirmPasswordReset = async (email, otpCode, newPassword) => {
+  const normalizedEmail = email.toLowerCase();
+
+  // 1. Verify OTP validity
+  await verifyPasswordResetOtp(normalizedEmail, otpCode);
+
+  // 2. Validate New Password
   const passValidation = validatePassword(newPassword);
   if (!passValidation.isValid) {
     throw new Error(passValidation.message);
   }
 
-  const normalizedEmail = email.toLowerCase();
-  let userRecord = null;
+  // 3. Hash New Password
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(newPassword, salt);
 
+  // 4. Update user record in Firestore 'users'
+  let userRecord = null;
   if (db) {
     try {
       const userDoc = await db.collection('users').doc(normalizedEmail).get();
-      if (userDoc.exists) userRecord = userDoc.data();
+      if (userDoc.exists) {
+        userRecord = userDoc.data();
+        await db.collection('users').doc(normalizedEmail).update({
+          password: hashedPassword,
+          updatedAt: new Date().toISOString()
+        });
+        if (userRecord.uid) {
+          await db.collection('users').doc(userRecord.uid).update({
+            password: hashedPassword,
+            updatedAt: new Date().toISOString()
+          });
+        }
+      }
     } catch (e) {}
   }
-  if (!userRecord) userRecord = inMemoryStore.users.get(normalizedEmail);
 
-  if (!userRecord) {
-    throw new Error('User Account Not Found');
+  const memUser = inMemoryStore.users.get(normalizedEmail);
+  if (memUser) {
+    memUser.password = hashedPassword;
+    inMemoryStore.users.set(normalizedEmail, memUser);
   }
 
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(newPassword, salt);
-  userRecord.password = hashedPassword;
-  delete userRecord.resetOtp;
-
+  // 5. Mark OTP as used
+  const usedAt = new Date().toISOString();
   if (db) {
     try {
-      await db.collection('users').doc(normalizedEmail).update({
-        password: hashedPassword,
-        resetOtp: null,
-        updatedAt: new Date().toISOString()
+      await db.collection('password_reset_otps').doc(normalizedEmail).update({
+        used: true,
+        usedAt
       });
-      console.log(`[Firebase Firestore] Password updated for: ${normalizedEmail}`);
     } catch (e) {}
   }
-  inMemoryStore.users.set(normalizedEmail, userRecord);
 
-  await logAction({ userId: userRecord.uid, userName: userRecord.fullName || userRecord.name, role: userRecord.role, action: 'USER_PASSWORD_RESET_FIREBASE', target: normalizedEmail });
-  return { message: 'Password updated successfully' };
+  const memOtp = otpStore.get(normalizedEmail);
+  if (memOtp) {
+    memOtp.used = true;
+    memOtp.usedAt = usedAt;
+  }
+
+  await logAction({
+    userId: userRecord?.uid || 'user',
+    userName: userRecord?.fullName || userRecord?.name || 'User',
+    role: userRecord?.role || 'Orthodontist',
+    action: 'PASSWORD_RESET_COMPLETED',
+    target: normalizedEmail
+  });
+
+  return {
+    success: true,
+    message: 'Password updated successfully. Please sign in with your new password.'
+  };
 };
 
 module.exports = {
   registerUser,
   loginUser,
-  forgotPassword,
-  resetPassword
+  forgotPassword: requestPasswordReset,
+  requestPasswordReset,
+  verifyPasswordResetOtp,
+  confirmPasswordReset
 };

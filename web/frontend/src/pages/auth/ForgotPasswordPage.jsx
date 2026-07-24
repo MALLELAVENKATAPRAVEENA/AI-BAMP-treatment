@@ -1,27 +1,63 @@
-import React, { useState } from 'react';
-import { Box, Typography, TextField, Button, Link, Alert } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Typography, TextField, Button, Link, Alert, CircularProgress } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { forgotPassword } from '../../services/authService';
 import { useNotification } from '../../context/NotificationContext';
-import { sendPasswordResetEmail } from 'firebase/auth';
-import { auth } from '../../firebase/firebaseConfig';
 import api from '../../services/api';
 
 export const ForgotPasswordPage = () => {
   const navigate = useNavigate();
   const { showNotification } = useNotification();
-  
+
   const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
+  const [step, setStep] = useState(1); // 1: Email Input, 2: OTP Verification, 3: New Password
   const [otpCode, setOtpCode] = useState('');
-  const [otpVerified, setOtpVerified] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [serverOtp, setServerOtp] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSendResetEmail = async (e) => {
+  // Timers
+  const [validitySeconds, setValiditySeconds] = useState(600); // 10 Minutes OTP Validity
+  const [cooldownSeconds, setCooldownSeconds] = useState(60); // 60s Resend Cooldown
+  const [canResend, setCanResend] = useState(false);
+
+  // Validity Countdown (10 mins)
+  useEffect(() => {
+    let timer;
+    if (step === 2 && validitySeconds > 0) {
+      timer = setInterval(() => {
+        setValiditySeconds((prev) => prev - 1);
+      }, 1000);
+    } else if (validitySeconds === 0 && step === 2) {
+      showNotification('OTP expired. Request a new OTP.', 'error');
+    }
+    return () => clearInterval(timer);
+  }, [step, validitySeconds]);
+
+  // Resend Cooldown (60s)
+  useEffect(() => {
+    let cooldownTimer;
+    if (step === 2 && cooldownSeconds > 0 && !canResend) {
+      cooldownTimer = setInterval(() => {
+        setCooldownSeconds((prev) => {
+          if (prev <= 1) {
+            setCanResend(true);
+            clearInterval(cooldownTimer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(cooldownTimer);
+  }, [step, cooldownSeconds, canResend]);
+
+  const formatTimer = (secs) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  };
+
+  const handleRequestOtp = async (e) => {
     if (e) e.preventDefault();
     if (!email) {
       showNotification('Please enter your registered email address', 'warning');
@@ -30,51 +66,50 @@ export const ForgotPasswordPage = () => {
     setLoading(true);
 
     try {
-      console.log(`[Auth Audit] Initiating Password Reset Email delivery to: ${email}`);
-      let fbSuccess = false;
-
-      // 1. Trigger Official Firebase Auth Password Reset Email
-      try {
-        const actionCodeSettings = {
-          url: `${window.location.origin}/reset-password`,
-          handleCodeInApp: true
-        };
-        await sendPasswordResetEmail(auth, email, actionCodeSettings);
-        fbSuccess = true;
-        console.log(`[Auth Audit] Firebase Auth sendPasswordResetEmail dispatched successfully to: ${email}`);
-      } catch (fbErr) {
-        console.error(`[Auth Audit] Firebase Auth sendPasswordResetEmail warning: ${fbErr.code} - ${fbErr.message}`);
-      }
-
-      // 2. Trigger Backend Email Service for 6-Digit Verification OTP Backup
-      const res = await forgotPassword({ email });
-      if (res.data?.otp) {
-        setServerOtp(res.data.otp);
-      }
-
-      setSubmitted(true);
-      setOtpSent(true);
-      showNotification('Password reset email sent. Please check your inbox and spam folder.', 'success');
+      const res = await api.post('/auth/forgot-password', { email });
+      setStep(2);
+      setValiditySeconds(600); // Reset 10 minutes
+      setCooldownSeconds(60); // Reset 60s cooldown
+      setCanResend(false);
+      showNotification(res.data?.message || 'Password reset verification code sent to your registered email address.', 'success');
     } catch (err) {
-      console.error(`[Auth Audit] Password reset email dispatch failed for: ${email}`, err);
-      showNotification('Email delivery failed. Please check if the email address is registered.', 'error');
+      const msg = err.response?.data?.message || err.message;
+      if (msg.includes('Not Found')) {
+        showNotification('User Account Not Found. Please check the email address.', 'error');
+      } else {
+        showNotification(msg || 'Failed to send OTP code. Please try again.', 'error');
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleVerifyOtp = (e) => {
+  const handleVerifyOtp = async (e) => {
     e.preventDefault();
     if (!otpCode || otpCode.length < 6) {
-      showNotification('Please enter the 6-digit OTP code received in your email inbox', 'warning');
+      showNotification('Please enter the full 6-digit OTP code', 'warning');
       return;
     }
 
-    if (otpCode === serverOtp || otpCode === '789012' || (serverOtp && otpCode === serverOtp)) {
-      setOtpVerified(true);
+    if (validitySeconds <= 0) {
+      showNotification('OTP expired. Request a new OTP.', 'error');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await api.post('/auth/verify-otp', { email, otp: otpCode });
+      setStep(3);
       showNotification('OTP Verified Successfully. Set your new password.', 'success');
-    } else {
-      showNotification('Invalid 6-digit OTP code. Please check your email inbox and spam folder.', 'error');
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message;
+      if (msg.includes('expired')) {
+        showNotification('OTP expired. Request a new OTP.', 'error');
+      } else {
+        showNotification('Invalid OTP. Please check your email inbox.', 'error');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -85,17 +120,18 @@ export const ForgotPasswordPage = () => {
       return;
     }
     setLoading(true);
+
     try {
       await api.post('/auth/reset-password', {
         email,
-        token: 'email-otp-verified',
+        otp: otpCode,
         newPassword
       });
-      showNotification('Password Reset Successful. Please sign in with your new password.', 'success');
+      showNotification('Password updated successfully. Please sign in with your new password.', 'success');
       navigate('/login');
     } catch (err) {
-      console.error(`[Auth Audit] Password update error:`, err);
-      showNotification(err.message || 'Password update failed', 'error');
+      const msg = err.response?.data?.message || err.message;
+      showNotification(msg || 'Password update failed', 'error');
     } finally {
       setLoading(false);
     }
@@ -107,11 +143,12 @@ export const ForgotPasswordPage = () => {
         Forgot Password
       </Typography>
       <Typography variant="body2" color="text.secondary" mb={3}>
-        Enter your registered email address to receive password reset instructions and verification code.
+        BAMP AI Outcome Predictor Medical Portal
       </Typography>
 
-      {!submitted && (
-        <Box component="form" onSubmit={handleSendResetEmail}>
+      {/* STEP 1: Enter Registered Email */}
+      {step === 1 && (
+        <Box component="form" onSubmit={handleRequestOtp}>
           <TextField
             fullWidth
             type="email"
@@ -122,59 +159,85 @@ export const ForgotPasswordPage = () => {
             margin="normal"
             required
           />
-          <Button type="submit" fullWidth variant="contained" size="large" sx={{ mt: 3, py: 1.2, borderRadius: '12px', fontWeight: 700 }} disabled={loading}>
-            {loading ? 'Sending Reset Instructions...' : 'Send Password Reset Email'}
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            size="large"
+            sx={{ mt: 3, py: 1.2, borderRadius: '12px', fontWeight: 700 }}
+            disabled={loading}
+          >
+            {loading ? <CircularProgress size={24} color="inherit" /> : 'Send Verification Code'}
           </Button>
         </Box>
       )}
 
-      {submitted && !otpVerified && (
+      {/* STEP 2: Verify 6-Digit OTP */}
+      {step === 2 && (
         <Box component="form" onSubmit={handleVerifyOtp}>
-          <Alert severity="success" sx={{ mb: 2.5, borderRadius: '12px', textAlign: 'left' }}>
-            Password reset email sent. Please check your inbox and spam folder for <strong>{email}</strong>.
+          <Alert severity="info" sx={{ mb: 2.5, borderRadius: '12px', textAlign: 'left' }}>
+            Verification code sent to <strong>{email}</strong>. Check your inbox and spam folder.
           </Alert>
 
           <TextField
             fullWidth
-            label="Enter 6-Digit Email Verification Code"
-            placeholder="123456"
+            label="Enter 6-Digit Verification Code"
+            placeholder="XXXXXX"
             value={otpCode}
             onChange={(e) => setOtpCode(e.target.value)}
             margin="normal"
             required
-            inputProps={{ maxLength: 6, style: { textAlign: 'center', fontSize: '24px', letterSpacing: '8px' } }}
+            inputProps={{ maxLength: 6, style: { textAlign: 'center', fontSize: '24px', letterSpacing: '8px', fontWeight: 'bold' } }}
           />
 
-          <Button type="submit" fullWidth variant="contained" color="secondary" size="large" sx={{ mt: 3, py: 1.2, borderRadius: '12px', fontWeight: 700 }}>
-            Verify Email Code & Reset
-          </Button>
+          <Box display="flex" justifyContent="space-between" alignItems="center" my={1.5} px={1}>
+            <Typography variant="caption" color={validitySeconds > 60 ? 'text.secondary' : 'error.main'} fontWeight={700}>
+              OTP Validity Remaining: {formatTimer(validitySeconds)}
+            </Typography>
+
+            <Button
+              variant="text"
+              size="small"
+              onClick={handleRequestOtp}
+              disabled={!canResend || loading}
+              sx={{ textTransform: 'none', fontWeight: 700 }}
+            >
+              {canResend ? 'Resend OTP' : `Resend in ${cooldownSeconds}s`}
+            </Button>
+          </Box>
 
           <Button
-            variant="text"
-            size="small"
-            sx={{ mt: 1.5, textTransform: 'none', fontWeight: 600 }}
-            onClick={handleSendResetEmail}
-            disabled={loading}
+            type="submit"
+            fullWidth
+            variant="contained"
+            color="secondary"
+            size="large"
+            sx={{ mt: 2, py: 1.2, borderRadius: '12px', fontWeight: 700 }}
+            disabled={loading || validitySeconds === 0}
           >
-            Resend Password Reset Email
+            {loading ? <CircularProgress size={24} color="inherit" /> : 'Verify Code'}
           </Button>
         </Box>
       )}
 
-      {otpVerified && (
+      {/* STEP 3: Enter New Password */}
+      {step === 3 && (
         <Box component="form" onSubmit={handleResetPassword}>
           <Alert severity="success" sx={{ mb: 2.5, borderRadius: '12px', textAlign: 'left' }}>
-            Verification Successful. Set your new password below.
+            Code Verified. Set your new password below.
           </Alert>
+
           <TextField
             fullWidth
             type="password"
-            label="New Password (7-9 chars)"
+            label="New Password (7-9 characters)"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             margin="normal"
             required
+            helperText="Must contain Upper, Lower, Digit & Special char"
           />
+
           <TextField
             fullWidth
             type="password"
@@ -184,8 +247,17 @@ export const ForgotPasswordPage = () => {
             margin="normal"
             required
           />
-          <Button type="submit" fullWidth variant="contained" color="success" size="large" sx={{ mt: 3, py: 1.2, borderRadius: '12px', fontWeight: 700 }} disabled={loading}>
-            {loading ? 'Saving New Password...' : 'Save New Password'}
+
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            color="success"
+            size="large"
+            sx={{ mt: 3, py: 1.2, borderRadius: '12px', fontWeight: 700 }}
+            disabled={loading}
+          >
+            {loading ? <CircularProgress size={24} color="inherit" /> : 'Save New Password'}
           </Button>
         </Box>
       )}
