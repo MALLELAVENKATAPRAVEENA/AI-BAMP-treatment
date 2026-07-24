@@ -1,19 +1,14 @@
 import React from 'react';
-import { Card, CardContent, Typography, Box, Grid } from '@mui/material';
+import { Card, Typography, Box, Grid } from '@mui/material';
 import {
-  ResponsiveContainer, LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
+  ResponsiveContainer, LineChart, Line, BarChart, Bar,
   XAxis, YAxis, Tooltip, CartesianGrid, Legend
 } from 'recharts';
-
-const GENDER_COLORS = ['#0d9488', '#0f52ba'];
-const RISK_COLORS = ['#10b981', '#f59e0b', '#ef4444'];
 
 export const DashboardCharts = ({ data }) => {
   const {
     successRateTrend = [],
     ageDistribution = [],
-    genderDistribution = [],
-    growthStageAnalysis = [],
     predictionAccuracy = [],
     landmarkAccuracy = []
   } = data || {};
@@ -22,11 +17,11 @@ export const DashboardCharts = ({ data }) => {
     <Grid container spacing={3}>
       {/* 1. Success Rate Trend Chart */}
       <Grid item xs={12} md={8}>
-        <Card sx={{ p: 2 }}>
+        <Card sx={{ p: 2, height: '100%' }}>
           <Typography variant="h6" fontWeight={700} mb={2}>
             Treatment Success Rate Trend (Monthly)
           </Typography>
-          <Box height={300}>
+          <Box height={280}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={successRateTrend}>
                 <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
@@ -41,58 +36,9 @@ export const DashboardCharts = ({ data }) => {
         </Card>
       </Grid>
 
-      {/* 2. Gender Distribution Pie Chart */}
+      {/* 2. Age Distribution */}
       <Grid item xs={12} md={4}>
         <Card sx={{ p: 2, height: '100%' }}>
-          <Typography variant="h6" fontWeight={700} mb={2}>
-            Gender Demographics
-          </Typography>
-          <Box height={260} display="flex" justifyContent="center" alignItems="center">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={genderDistribution}
-                  dataKey="count"
-                  nameKey="gender"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  label={({ gender, percentage }) => `${gender}: ${percentage}%`}
-                >
-                  {genderDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={GENDER_COLORS[index % GENDER_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </Box>
-        </Card>
-      </Grid>
-
-      {/* 3. Growth Stage Analysis Chart */}
-      <Grid item xs={12} md={6}>
-        <Card sx={{ p: 2 }}>
-          <Typography variant="h6" fontWeight={700} mb={2}>
-            Growth Stage vs BAMP Success Rate
-          </Typography>
-          <Box height={280}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={growthStageAnalysis}>
-                <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                <XAxis dataKey="stage" />
-                <YAxis unit="%" />
-                <Tooltip formatter={(val) => [`${val}%`, 'Avg Success']} />
-                <Bar dataKey="avgSuccess" fill="#0d9488" radius={[8, 8, 0, 0]} name="Success Rate %" />
-              </BarChart>
-            </ResponsiveContainer>
-          </Box>
-        </Card>
-      </Grid>
-
-      {/* 4. Age Distribution */}
-      <Grid item xs={12} md={6}>
-        <Card sx={{ p: 2 }}>
           <Typography variant="h6" fontWeight={700} mb={2}>
             Age Group Distribution
           </Typography>
@@ -110,7 +56,7 @@ export const DashboardCharts = ({ data }) => {
         </Card>
       </Grid>
 
-      {/* 5. ML Model Prediction Accuracy */}
+      {/* 3. ML Model Prediction Accuracy */}
       <Grid item xs={12} md={6}>
         <Card sx={{ p: 2 }}>
           <Typography variant="h6" fontWeight={700} mb={2}>
@@ -132,7 +78,7 @@ export const DashboardCharts = ({ data }) => {
         </Card>
       </Grid>
 
-      {/* 6. Landmark Detection Precision */}
+      {/* 4. Landmark Detection Precision */}
       <Grid item xs={12} md={6}>
         <Card sx={{ p: 2 }}>
           <Typography variant="h6" fontWeight={700} mb={2}>

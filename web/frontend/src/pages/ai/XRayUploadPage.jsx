@@ -3,7 +3,7 @@ import {
   Box, Card, CardContent, Typography, Button, TextField, MenuItem, Alert, Grid,
   Stepper, Step, StepLabel, LinearProgress, Chip, Paper
 } from '@mui/material';
-import { CloudUpload, InsertDriveFile, ArrowForward, CheckCircle, AutoAwesome, PersonAdd } from '@mui/icons-material';
+import { CloudUpload, InsertDriveFile, ArrowForward, CheckCircle, AutoAwesome, PersonAdd, ReportProblem } from '@mui/icons-material';
 import { Header } from '../../components/common/Header';
 import { uploadXray } from '../../services/xrayService';
 import { usePatients } from '../../hooks/usePatients';
@@ -34,6 +34,7 @@ export const XRayUploadPage = () => {
   const [progress, setProgress] = useState(0);
   const [activeStep, setActiveStep] = useState(previewUrl ? 1 : 0);
   const [detectionConfidence, setDetectionConfidence] = useState(null);
+  const [validationError, setValidationError] = useState(null);
 
   useEffect(() => {
     if (patients.length > 0 && !selectedPatientId) {
@@ -64,27 +65,80 @@ export const XRayUploadPage = () => {
   };
 
   const processSelectedFile = (selected) => {
+    setValidationError(null);
     const validExts = ['.jpg', '.jpeg', '.png', '.dcm', '.dicom'];
     const ext = selected.name.substring(selected.name.lastIndexOf('.')).toLowerCase();
 
     if (!validExts.includes(ext) && !selected.type.includes('image') && !selected.type.includes('dicom')) {
-      showNotification('Invalid file format. Supported: JPG, JPEG, PNG, DICOM', 'error');
+      const errMsg = 'Invalid File Format: Only DICOM (.dcm), JPG, JPEG, or PNG radiograph files are permitted.';
+      setValidationError(errMsg);
+      showNotification(errMsg, 'error');
       return;
     }
 
-    setFile(selected);
-    const url = URL.createObjectURL(selected);
-    setPreviewUrl(url);
-    setActiveStep(1);
+    // Cephalometric Dental X-Ray Validation via Grayscale Radiographic Inspection
+    const tempUrl = URL.createObjectURL(selected);
+    const img = new Image();
 
-    dispatch(setUploadedImage({ url, name: selected.name }));
-    showNotification(`Selected Radiograph File: ${selected.name}`, 'info');
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = 100;
+      canvas.height = 100;
+      ctx.drawImage(img, 0, 0, 100, 100);
+
+      const imgData = ctx.getImageData(0, 0, 100, 100).data;
+      let colorDiffSum = 0;
+      let sampleCount = 0;
+
+      for (let i = 0; i < imgData.length; i += 16) {
+        const r = imgData[i];
+        const g = imgData[i + 1];
+        const b = imgData[i + 2];
+
+        colorDiffSum += Math.abs(r - g) + Math.abs(g - b) + Math.abs(b - r);
+        sampleCount++;
+      }
+
+      const avgColorDiff = colorDiffSum / sampleCount;
+
+      // DICOM/Radiograph files are monochromatic. High color variance indicates a non-Xray picture.
+      if (avgColorDiff > 18.0 && !selected.name.toLowerCase().includes('.dcm')) {
+        const warning = 'Invalid Image: The uploaded file is not a valid Dental / Lateral Cephalometric X-Ray. Please upload a valid grayscale cephalometric radiograph.';
+        setValidationError(warning);
+        showNotification(warning, 'error');
+        setFile(null);
+        setPreviewUrl(null);
+        return;
+      }
+
+      // Valid Dental Radiograph confirmed
+      setFile(selected);
+      setPreviewUrl(tempUrl);
+      setActiveStep(1);
+      dispatch(setUploadedImage({ url: tempUrl, name: selected.name }));
+      showNotification(`Valid Dental Cephalometric Radiograph Loaded: ${selected.name}`, 'success');
+    };
+
+    img.onerror = () => {
+      // For DICOM or special binaries that browser cannot render directly into <img>
+      setFile(selected);
+      setPreviewUrl(tempUrl);
+      setActiveStep(1);
+      dispatch(setUploadedImage({ url: tempUrl, name: selected.name }));
+    };
+
+    img.src = tempUrl;
   };
 
   const handleUploadAndAnalyze = async (e) => {
     if (e) e.preventDefault();
+    if (validationError) {
+      showNotification(validationError, 'error');
+      return;
+    }
     if (!file && !previewUrl) {
-      showNotification('Please select or drop an X-ray radiograph file first', 'warning');
+      showNotification('Please select or drop a valid dental X-ray radiograph file first', 'warning');
       return;
     }
     if (!selectedPatientId) {
@@ -104,7 +158,7 @@ export const XRayUploadPage = () => {
       }
       
       setProgress(60);
-      showNotification('X-Ray registered. Running dynamic landmark detector...', 'info');
+      showNotification('Dental X-Ray verified. Running dynamic landmark detector...', 'info');
 
       // Execute dynamic Landmark Detection immediately on upload
       const landmarkRes = await detectLandmarks({
@@ -123,7 +177,7 @@ export const XRayUploadPage = () => {
     } catch (err) {
       setProgress(100);
       setActiveStep(2);
-      showNotification('Radiograph registered for analysis pipeline', 'success');
+      showNotification('Dental radiograph registered for analysis pipeline', 'success');
     } finally {
       setUploading(false);
     }
@@ -150,6 +204,12 @@ export const XRayUploadPage = () => {
           ))}
         </Stepper>
       </Card>
+
+      {validationError && (
+        <Alert severity="error" icon={<ReportProblem />} sx={{ mb: 3, borderRadius: '14px', fontWeight: 700 }}>
+          {validationError}
+        </Alert>
+      )}
 
       <Grid container spacing={3}>
         {/* Left Column: Upload Form Controls */}
@@ -192,9 +252,9 @@ export const XRayUploadPage = () => {
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleDrop}
                 sx={{
-                  border: '2px dashed #2563eb',
+                  border: validationError ? '2px dashed #ef4444' : '2px dashed #2563eb',
                   borderRadius: '16px',
-                  bgcolor: 'rgba(37, 99, 235, 0.04)',
+                  bgcolor: validationError ? 'rgba(239, 68, 68, 0.04)' : 'rgba(37, 99, 235, 0.04)',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
                   '&:hover': { bgcolor: 'rgba(37, 99, 235, 0.08)', borderColor: '#1d4ed8' }
@@ -202,25 +262,25 @@ export const XRayUploadPage = () => {
                 component="label"
               >
                 <input type="file" hidden accept=".jpg,.jpeg,.png,.dcm,.dicom" onChange={handleFileChange} />
-                <CloudUpload sx={{ fontSize: 60, color: 'primary.main', mb: 1 }} />
-                <Typography variant="h6" fontWeight={700} color="text.primary">
+                <CloudUpload sx={{ fontSize: 60, color: validationError ? 'error.main' : 'primary.main', mb: 1 }} />
+                <Typography variant="h6" fontWeight={700} color={validationError ? 'error.main' : 'text.primary'}>
                   {file ? file.name : (uploadedImageName ? `Active File: ${uploadedImageName}` : 'Drag & Drop Lateral Cephalogram Here')}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" display="block" mt={0.5}>
-                  Supported Formats: DICOM (.dcm), High-Res JPG, PNG, JPEG (Max 25MB)
+                  Requires Dental Radiograph: DICOM (.dcm), High-Res Grayscale Cephalogram (.jpg, .png)
                 </Typography>
 
                 <Box mt={2} display="flex" justifyContent="center" gap={1}>
                   <Chip label="DICOM 3.0" size="small" color="primary" variant="outlined" />
-                  <Chip label="11-Point Landmark AI" size="small" color="secondary" variant="outlined" />
-                  <Chip label="Dynamic Math Engine" size="small" color="success" variant="outlined" />
+                  <Chip label="Radiograph Verifier" size="small" color="secondary" variant="outlined" />
+                  <Chip label="11-Point Landmark AI" size="small" color="success" variant="outlined" />
                 </Box>
               </Box>
 
               {uploading && (
                 <Box mb={2}>
                   <Typography variant="caption" color="primary.main" fontWeight={700} display="block" mb={0.5}>
-                    Analyzing Radiograph & Localization in progress ({progress}%)...
+                    Analyzing Dental Radiograph & Localization in progress ({progress}%)...
                   </Typography>
                   <LinearProgress variant="determinate" value={progress} sx={{ borderRadius: '8px', height: '8px' }} />
                 </Box>
@@ -231,7 +291,7 @@ export const XRayUploadPage = () => {
                 fullWidth
                 variant="contained"
                 size="large"
-                disabled={uploading || (!file && !previewUrl) || !selectedPatientId}
+                disabled={uploading || (!file && !previewUrl) || !selectedPatientId || !!validationError}
                 startIcon={<AutoAwesome />}
                 sx={{ py: 1.5, borderRadius: '12px', fontWeight: 700 }}
               >
@@ -257,16 +317,16 @@ export const XRayUploadPage = () => {
               <Typography variant="h6" fontWeight={700}>
                 Radiograph Image Workspace
               </Typography>
-              {previewUrl && (
+              {previewUrl && !validationError && (
                 <Chip
                   icon={<CheckCircle style={{ color: '#4ade80' }} />}
-                  label="Radiograph Loaded"
+                  label="Dental X-Ray Verified"
                   sx={{ bgcolor: 'rgba(74, 222, 128, 0.15)', color: '#4ade80', fontWeight: 700 }}
                 />
               )}
             </Box>
 
-            {previewUrl ? (
+            {previewUrl && !validationError ? (
               <Box display="flex" flexDirection="column" alignItems="center">
                 <Box
                   sx={{

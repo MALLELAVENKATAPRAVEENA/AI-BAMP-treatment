@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Grid, Typography, Button, IconButton, Card, CardContent, Table, TableHead, TableRow, TableCell, TableBody, Chip } from '@mui/material';
+import { Box, Grid, Typography, Button, IconButton, Card, Table, TableHead, TableRow, TableCell, TableBody, Chip } from '@mui/material';
 import {
   People, PersonAdd, Insights, CheckCircle, Warning, ErrorOutline,
-  CloudUpload, Description, Refresh, FolderOff, AdminPanelSettings
+  CloudUpload, Description, Refresh, FolderOff
 } from '@mui/icons-material';
 import { Header } from '../../components/common/Header';
 import { StatCard } from '../../components/common/StatCard';
@@ -29,7 +29,6 @@ export const OrthodontistDashboard = () => {
 
   const widgets = stats?.widgets || {
     totalPatients: 0,
-    totalUsers: 1,
     newPatientsThisMonth: 0,
     predictionCount: 0,
     successfulCases: 0,
@@ -69,25 +68,22 @@ export const OrthodontistDashboard = () => {
           <StatCard title="Total Patients" value={widgets.totalPatients} icon={<People />} color="#0f52ba" subtitle="Live Registered Cases" />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <StatCard title="Total Users" value={widgets.totalUsers} icon={<AdminPanelSettings />} color="#0d9488" subtitle="Active System Accounts" />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
           <StatCard title="Total Predictions" value={widgets.predictionCount} icon={<Insights />} color="#8b5cf6" subtitle="AI Inference Runs" />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard title="Successful Cases" value={widgets.successfulCases} icon={<CheckCircle />} color="#10b981" subtitle=">85% Success Rate" />
         </Grid>
-
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard title="Moderate Risk Cases" value={widgets.moderateRiskCases} icon={<Warning />} color="#f59e0b" subtitle="70-85% Success Rate" />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard title="High Risk Cases" value={widgets.highRiskCases} icon={<ErrorOutline />} color="#ef4444" subtitle="<70% Success Rate" />
-        </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard title="Uploaded X-Rays" value={widgets.uploadedXrays} icon={<CloudUpload />} color="#0284c7" subtitle="Lateral Cephalograms" />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+
+        <Grid item xs={12} sm={6} md={4}>
+          <StatCard title="Moderate Risk Cases" value={widgets.moderateRiskCases} icon={<Warning />} color="#f59e0b" subtitle="70-85% Success Rate" />
+        </Grid>
+        <Grid item xs={12} sm={6} md={4}>
+          <StatCard title="High Risk Cases" value={widgets.highRiskCases} icon={<ErrorOutline />} color="#ef4444" subtitle="<70% Success Rate" />
+        </Grid>
+        <Grid item xs={12} sm={6} md={4}>
           <StatCard title="Total Reports" value={widgets.reportsGenerated} icon={<Description />} color="#6366f1" subtitle="Clinical PDFs Generated" />
         </Grid>
       </Grid>
