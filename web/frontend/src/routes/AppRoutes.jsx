@@ -3,7 +3,6 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthLayout } from '../layouts/AuthLayout';
 import { MainLayout } from '../layouts/MainLayout';
 import { ProtectedRoute } from './ProtectedRoute';
-import { RoleGuard } from './RoleGuard';
 
 // Auth Pages
 import { LoginPage } from '../pages/auth/LoginPage';
@@ -12,10 +11,8 @@ import { VerifyOTPPage } from '../pages/auth/VerifyOTPPage';
 import { ForgotPasswordPage } from '../pages/auth/ForgotPasswordPage';
 import { ResetPasswordPage } from '../pages/auth/ResetPasswordPage';
 
-// Dashboards
+// Main Dashboard
 import { OrthodontistDashboard } from '../pages/dashboard/OrthodontistDashboard';
-import { AdminDashboard } from '../pages/dashboard/AdminDashboard';
-import { ResearcherDashboard } from '../pages/dashboard/ResearcherDashboard';
 
 // Patient Module
 import { PatientListPage } from '../pages/patient/PatientListPage';
@@ -37,17 +34,10 @@ import { AIChatPage } from '../pages/ai/AIChatPage';
 import { ReportsListPage } from '../pages/reports/ReportsListPage';
 import { GenerateReportPage } from '../pages/reports/GenerateReportPage';
 
-// Admin & Researcher
-import { UserManagementPage } from '../pages/admin/UserManagementPage';
-import { AIModelMonitoringPage } from '../pages/admin/AIModelMonitoringPage';
-import { AuditLogsPage } from '../pages/admin/AuditLogsPage';
-import { DatasetExplorerPage } from '../pages/admin/DatasetExplorerPage';
-
 // Settings
 import { ProfilePage } from '../pages/settings/ProfilePage';
 import { NotificationsPage } from '../pages/settings/NotificationsPage';
 import { SecurityPage } from '../pages/settings/SecurityPage';
-import { SystemSettingsPage } from '../pages/settings/SystemSettingsPage';
 
 export const AppRoutes = () => {
   return (
@@ -66,8 +56,8 @@ export const AppRoutes = () => {
         <Route element={<MainLayout />}>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<OrthodontistDashboard />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/researcher/dashboard" element={<ResearcherDashboard />} />
+          <Route path="/admin/dashboard" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/researcher/dashboard" element={<Navigate to="/dashboard" replace />} />
 
           {/* Patients */}
           <Route path="/patients" element={<PatientListPage />} />
@@ -89,22 +79,10 @@ export const AppRoutes = () => {
           <Route path="/reports" element={<ReportsListPage />} />
           <Route path="/reports/generate" element={<GenerateReportPage />} />
 
-          {/* Admin & Researcher */}
-          <Route element={<RoleGuard allowedRoles={['Administrator']} />}>
-            <Route path="/admin/users" element={<UserManagementPage />} />
-            <Route path="/admin/models" element={<AIModelMonitoringPage />} />
-          </Route>
-
-          <Route element={<RoleGuard allowedRoles={['Administrator', 'Researcher']} />}>
-            <Route path="/admin/audit-logs" element={<AuditLogsPage />} />
-            <Route path="/researcher/datasets" element={<DatasetExplorerPage />} />
-          </Route>
-
           {/* Settings */}
           <Route path="/settings/profile" element={<ProfilePage />} />
           <Route path="/settings/notifications" element={<NotificationsPage />} />
           <Route path="/settings/security" element={<SecurityPage />} />
-          <Route path="/settings/system" element={<SystemSettingsPage />} />
         </Route>
       </Route>
 

@@ -3,6 +3,8 @@ import { Box, Typography, TextField, Button, Link, Alert } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { forgotPassword } from '../../services/authService';
 import { useNotification } from '../../context/NotificationContext';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { auth } from '../../firebase/firebaseConfig';
 
 export const ForgotPasswordPage = () => {
   const navigate = useNavigate();
@@ -10,6 +12,7 @@ export const ForgotPasswordPage = () => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [directResetUrl, setDirectResetUrl] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,12 +21,25 @@ export const ForgotPasswordPage = () => {
       return;
     }
     setLoading(true);
+    setDirectResetUrl(null);
+
     try {
-      await forgotPassword({ email });
+      // 1. Send via Firebase Client SDK
+      try {
+        await sendPasswordResetEmail(auth, email);
+      } catch (fbErr) {
+        console.warn('Firebase Auth email send warning:', fbErr.message);
+      }
+
+      // 2. Call backend API for reset link generation
+      const res = await forgotPassword({ email });
+      if (res.data?.resetLink) {
+        setDirectResetUrl(res.data.resetLink);
+      }
       setSubmitted(true);
-      showNotification('Password reset link sent to your email', 'success');
+      showNotification('Password reset link generated successfully', 'success');
     } catch (err) {
-      showNotification(err.message || 'Request failed', 'error');
+      showNotification(err.message || 'Request failed. User may not exist.', 'error');
     } finally {
       setLoading(false);
     }
@@ -50,14 +66,32 @@ export const ForgotPasswordPage = () => {
             required
           />
 
-          <Button type="submit" fullWidth variant="contained" size="large" sx={{ mt: 3, py: 1.2 }} disabled={loading}>
+          <Button type="submit" fullWidth variant="contained" size="large" sx={{ mt: 3, py: 1.2, borderRadius: '12px', fontWeight: 700 }} disabled={loading}>
             {loading ? 'Dispatching Reset Link...' : 'Send Reset Password Link'}
           </Button>
         </>
       ) : (
-        <Alert severity="success" sx={{ my: 2, textAlign: 'left', borderRadius: '12px' }}>
-          Password reset link has been sent to <strong>{email}</strong>. Please check your email inbox to reset your password.
-        </Alert>
+        <Box textAlign="left">
+          <Alert severity="success" sx={{ my: 2, borderRadius: '12px' }}>
+            Password reset link generated for <strong>{email}</strong>.
+          </Alert>
+
+          {directResetUrl && (
+            <Button
+              fullWidth
+              variant="contained"
+              color="secondary"
+              size="large"
+              sx={{ mt: 1, py: 1.5, borderRadius: '12px', fontWeight: 700 }}
+              onClick={() => {
+                const url = new URL(directResetUrl);
+                navigate(`${url.pathname}${url.search}`);
+              }}
+            >
+              Click Here to Reset Password Now
+            </Button>
+          )}
+        </Box>
       )}
 
       <Box mt={3}>

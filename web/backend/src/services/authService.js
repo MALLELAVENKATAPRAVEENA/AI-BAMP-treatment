@@ -158,7 +158,13 @@ const forgotPassword = async (email) => {
 
   const resetToken = generateToken({ email: userRecord.email, type: 'reset' });
   await sendPasswordResetEmail(email, resetToken);
-  return { message: 'Password reset link sent to your email.' };
+
+  const resetLink = `/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
+
+  return {
+    message: 'Password reset link generated successfully.',
+    resetLink
+  };
 };
 
 const resetPassword = async (email, token, newPassword) => {

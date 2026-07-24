@@ -2,12 +2,11 @@ import React from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { signupSchema } from '../../utils/validators';
-import { Box, Typography, TextField, MenuItem, Button, Link, Grid } from '@mui/material';
+import { Box, Typography, TextField, Button, Link, Grid } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { register } from '../../services/authService';
 import { useAuthContext } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
-import { ROLES } from '../../utils/constants';
 
 export const SignupPage = () => {
   const navigate = useNavigate();
@@ -21,7 +20,7 @@ export const SignupPage = () => {
       email: '',
       mobileNumber: '',
       hospitalName: '',
-      role: ROLES.ORTHODONTIST,
+      role: 'Orthodontist',
       password: '',
       confirmPassword: ''
     }
@@ -29,11 +28,12 @@ export const SignupPage = () => {
 
   const onSubmit = async (data) => {
     try {
-      const res = await register(data);
+      const payload = { ...data, role: 'Orthodontist' };
+      const res = await register(payload);
       if (res.data?.token && res.data?.user) {
         loginUser(res.data.user, res.data.token);
       }
-      showNotification('Registration Successful', 'success');
+      showNotification('Orthodontist Registration Successful', 'success');
       navigate('/dashboard');
     } catch (err) {
       showNotification(err.message || 'Registration Failed', 'error');
@@ -43,7 +43,7 @@ export const SignupPage = () => {
   return (
     <Box component="form" onSubmit={handleSubmit(onSubmit)}>
       <Typography variant="h5" fontWeight={700} color="primary.main" textAlign="center" mb={1}>
-        Create Medical Account
+        Create Orthodontist Account
       </Typography>
       <Typography variant="body2" color="text.secondary" textAlign="center" mb={3}>
         AI BAMP Outcome Assessment Portal
@@ -88,20 +88,6 @@ export const SignupPage = () => {
           />
         </Grid>
 
-        <Grid item xs={12}>
-          <Controller
-            name="role"
-            control={control}
-            render={({ field }) => (
-              <TextField {...field} select fullWidth label="Role Category">
-                <MenuItem value={ROLES.ORTHODONTIST}>Orthodontist</MenuItem>
-                <MenuItem value={ROLES.RESEARCHER}>Researcher</MenuItem>
-                <MenuItem value={ROLES.ADMINISTRATOR}>Administrator</MenuItem>
-              </TextField>
-            )}
-          />
-        </Grid>
-
         <Grid item xs={12} sm={6}>
           <Controller
             name="password"
@@ -136,8 +122,8 @@ export const SignupPage = () => {
         </Grid>
       </Grid>
 
-      <Button type="submit" fullWidth variant="contained" size="large" sx={{ mt: 3, py: 1.2 }} disabled={isSubmitting}>
-        {isSubmitting ? 'Registering Account...' : 'Register Account'}
+      <Button type="submit" fullWidth variant="contained" size="large" sx={{ mt: 3, py: 1.2, borderRadius: '12px', fontWeight: 700 }} disabled={isSubmitting}>
+        {isSubmitting ? 'Registering Account...' : 'Register Orthodontist Account'}
       </Button>
 
       <Box textAlign="center" mt={2}>
