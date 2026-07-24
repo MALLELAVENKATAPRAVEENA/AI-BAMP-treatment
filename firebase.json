@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "public": "../frontend/dist",
+    "public": "web/frontend/dist",
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -14,7 +14,7 @@
     ]
   },
   "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
+    "rules": "web/firebase/firestore.rules",
+    "indexes": "web/firebase/firestore.indexes.json"
   }
 }
