@@ -34,17 +34,26 @@ const getUserProfile = async (req, res, next) => {
 
 const updateUserProfile = async (req, res, next) => {
   try {
-    const { fullName, mobileNumber, hospitalName, password, avatarUrl } = req.body;
+    const { fullName, name, mobileNumber, hospitalName, password, avatarUrl, photoURL } = req.body;
     const targetEmail = (req.user?.email || '').toLowerCase();
+    const uid = req.user?.uid || req.user?.id;
 
     const updates = {
       updatedAt: new Date().toISOString()
     };
 
-    if (fullName) updates.fullName = fullName;
+    const dispName = fullName || name;
+    if (dispName) {
+      updates.fullName = dispName;
+      updates.name = dispName;
+    }
     if (mobileNumber) updates.mobileNumber = mobileNumber;
     if (hospitalName) updates.hospitalName = hospitalName;
-    if (avatarUrl) updates.avatarUrl = avatarUrl;
+    const photo = avatarUrl || photoURL;
+    if (photo) {
+      updates.avatarUrl = photo;
+      updates.photoURL = photo;
+    }
     if (password) {
       updates.password = await bcrypt.hash(password, 10);
     }
@@ -52,6 +61,7 @@ const updateUserProfile = async (req, res, next) => {
     if (db && targetEmail) {
       try {
         await db.collection('users').doc(targetEmail).set(updates, { merge: true });
+        if (uid) await db.collection('users').doc(uid).set(updates, { merge: true });
       } catch (e) {
         console.warn('[Firestore] Update profile error:', e.message);
       }
@@ -62,11 +72,58 @@ const updateUserProfile = async (req, res, next) => {
     inMemoryStore.users.set(targetEmail, updatedUser);
 
     const { password: pwd, ...safeUser } = updatedUser;
-    await createAuditLog('USER_PROFILE_UPDATED', req.user?.uid || 'user', { targetEmail });
+    await createAuditLog('USER_PROFILE_UPDATED', uid || 'user', { targetEmail });
 
     return sendSuccess(res, 'Practitioner profile updated successfully in Firestore', safeUser);
   } catch (error) {
     return sendError(res, error.message, 400);
+  }
+};
+
+const submitFeedback = async (req, res, next) => {
+  try {
+    const userId = req.user?.uid || req.user?.id || 'anonymous';
+    const { rating, message } = req.body;
+
+    const feedbackId = `FB-${Date.now()}`;
+    const feedbackDoc = {
+      feedbackId,
+      userId,
+      rating: Number(rating || 5),
+      message: message || '',
+      createdAt: new Date().toISOString()
+    };
+
+    if (db) {
+      try {
+        await db.collection('feedback').doc(feedbackId).set(feedbackDoc);
+      } catch (e) {}
+    }
+
+    await createAuditLog('USER_FEEDBACK_SUBMITTED', userId, { feedbackId, rating });
+    return sendSuccess(res, 'Thank you for your feedback!', feedbackDoc, 201);
+  } catch (error) {
+    return sendError(res, error.message, 400);
+  }
+};
+
+const getNotifications = async (req, res, next) => {
+  try {
+    const userId = req.user?.uid || req.user?.id;
+    let list = [];
+
+    if (db && userId) {
+      try {
+        const snap = await db.collection('notifications').where('userId', '==', userId).get();
+        if (!snap.empty) {
+          list = snap.docs.map(doc => doc.data());
+        }
+      } catch (e) {}
+    }
+
+    return sendSuccess(res, 'Notifications retrieved', list);
+  } catch (error) {
+    return sendError(res, error.message, 500);
   }
 };
 
@@ -76,7 +133,7 @@ const clearDemoData = async (req, res, next) => {
 
     if (db) {
       try {
-        const collections = ['patients', 'predictions', 'xrays', 'reports', 'landmarks', 'cephalometricMeasurements'];
+        const collections = ['patients', 'predictions', 'xrays', 'reports', 'landmarks', 'cephalometricMeasurements', 'notifications', 'feedback'];
         for (const col of collections) {
           const snapshot = await db.collection(col).get();
           const batch = db.batch();
@@ -165,6 +222,8 @@ const fetchAuditLogs = async (req, res, next) => {
 module.exports = {
   getUserProfile,
   updateUserProfile,
+  submitFeedback,
+  getNotifications,
   clearDemoData,
   getUsers,
   updateUserRole,

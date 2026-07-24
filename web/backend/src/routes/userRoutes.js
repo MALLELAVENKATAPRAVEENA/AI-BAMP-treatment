@@ -8,6 +8,8 @@ router.use(authenticateToken);
 
 router.get('/users/profile', userController.getUserProfile);
 router.put('/users/profile', userController.updateUserProfile);
+router.post('/feedback', userController.submitFeedback);
+router.get('/notifications', userController.getNotifications);
 router.post('/admin/clear-demo-data', userController.clearDemoData);
 
 router.get('/users', authorizeRoles('Administrator'), userController.getUsers);

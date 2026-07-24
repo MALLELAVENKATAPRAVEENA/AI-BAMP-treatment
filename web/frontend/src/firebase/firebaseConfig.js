@@ -4,12 +4,12 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyDummyKeyForBampApp",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "bamp-ai-predictor.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "bamp-ai-predictor",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "bamp-ai-predictor.appspot.com",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "1234567890",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:1234567890:web:abcdef123456"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyBamp1de96ApiKeyProduction",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "bamp-1de96.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "bamp-1de96",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "bamp-1de96.appspot.com",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "111605092071944690207",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:111605092071944690207:web:bamp1de96app"
 };
 
 const app = initializeApp(firebaseConfig);

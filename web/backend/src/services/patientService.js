@@ -45,9 +45,20 @@ const getPatientById = async (patientId, doctorId) => {
 const createPatient = async (patientData, doctorId) => {
   const patientId = `PAT-${Date.now()}`;
   const newPatient = {
-    ...patientData,
     patientId,
     doctorId: doctorId || patientData.doctorId,
+    patientName: patientData.patientName || patientData.name || 'Patient Record',
+    name: patientData.name || patientData.patientName || 'Patient Record',
+    age: Number(patientData.age || 10),
+    gender: patientData.gender || 'Female',
+    cvmStage: patientData.cvmStage || 'CVM 3',
+    growthPotential: patientData.growthPotential || 'High',
+    bampStartDate: patientData.bampStartDate || new Date().toISOString().split('T')[0],
+    diagnosis: patientData.diagnosis || patientData.chiefComplaint || 'Class III Skeletal Malocclusion',
+    cephalometricMeasurements: patientData.cephalometricMeasurements || {},
+    uploadedImages: patientData.uploadedImages || [],
+    predictionResult: patientData.predictionResult || null,
+    treatmentPlan: patientData.treatmentPlan || patientData.treatmentNotes || 'Bone-Anchored Maxillary Protraction Protocol',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
@@ -73,6 +84,8 @@ const updatePatient = async (patientId, updateData, doctorId) => {
   const updated = {
     ...existing,
     ...updateData,
+    patientName: updateData.patientName || updateData.name || existing.patientName || existing.name,
+    name: updateData.name || updateData.patientName || existing.name || existing.patientName,
     updatedAt: new Date().toISOString()
   };
 

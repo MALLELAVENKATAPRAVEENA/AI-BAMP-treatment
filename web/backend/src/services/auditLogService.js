@@ -1,27 +1,30 @@
 const { db, inMemoryStore } = require('../config/firebaseAdmin');
 
 const logAction = async ({ userId, userName, role, action, target, details, ip }) => {
+  const logId = `log-${Date.now()}-${Math.floor(Math.random()*1000)}`;
   const logEntry = {
-    id: `log-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+    logId,
+    id: logId,
     userId: userId || 'system',
     userName: userName || 'System User',
-    role: role || 'Administrator',
+    role: role || 'Orthodontist',
     action,
     target: target || 'N/A',
-    details: details || '',
+    details: details ? (typeof details === 'object' ? JSON.stringify(details) : String(details)) : (action + ' executed'),
     ip: ip || '127.0.0.1',
     timestamp: new Date().toISOString()
   };
 
   try {
     if (db) {
-      await db.collection('auditLogs').doc(logEntry.id).set(logEntry);
+      await db.collection('audit_logs').doc(logId).set(logEntry);
+      await db.collection('auditLogs').doc(logId).set(logEntry);
     } else {
-      inMemoryStore.auditLogs.set(logEntry.id, logEntry);
+      inMemoryStore.auditLogs.set(logId, logEntry);
     }
   } catch (error) {
     console.warn('Audit Logging Warning:', error.message);
-    inMemoryStore.auditLogs.set(logEntry.id, logEntry);
+    inMemoryStore.auditLogs.set(logId, logEntry);
   }
 
   return logEntry;
@@ -30,8 +33,10 @@ const logAction = async ({ userId, userName, role, action, target, details, ip }
 const getLogs = async (limitCount = 50) => {
   try {
     if (db) {
-      const snapshot = await db.collection('auditLogs').orderBy('timestamp', 'desc').limit(limitCount).get();
-      return snapshot.docs.map(doc => doc.data());
+      const snapshot = await db.collection('audit_logs').orderBy('timestamp', 'desc').limit(limitCount).get();
+      if (!snapshot.empty) {
+        return snapshot.docs.map(doc => doc.data());
+      }
     }
   } catch (e) {
     console.warn('Fallback to in-memory audit logs');
@@ -41,5 +46,6 @@ const getLogs = async (limitCount = 50) => {
 
 module.exports = {
   logAction,
-  getLogs
+  getLogs,
+  createAuditLog: logAction
 };

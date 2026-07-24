@@ -15,6 +15,7 @@ const DEFAULT_LANDMARKS = {
 };
 
 const initialState = {
+  currentPatient: null,
   uploadedImageUrl: null,
   uploadedImageName: null,
   landmarks: DEFAULT_LANDMARKS,
@@ -28,6 +29,9 @@ const aiSlice = createSlice({
   name: 'ai',
   initialState,
   reducers: {
+    setCurrentPatient: (state, action) => {
+      state.currentPatient = action.payload;
+    },
     setUploadedImage: (state, action) => {
       state.uploadedImageUrl = action.payload.url;
       state.uploadedImageName = action.payload.name;
@@ -54,6 +58,7 @@ const aiSlice = createSlice({
 });
 
 export const {
+  setCurrentPatient,
   setUploadedImage,
   setLandmarks,
   updateSingleLandmark,

@@ -90,17 +90,11 @@ const calculateMeasurements = async (patientId, landmarks, doctorId = null) => {
 
 const predictBampOutcome = async (patientData) => {
   const doctorId = patientData.doctorId || null;
+  let predictionData = null;
+
   try {
     const response = await axios.post(`${config.aiServiceUrl}/predict`, patientData, { timeout: 4000 });
-    const result = response.data;
-    result.predictionId = `PRED-${Date.now()}`;
-    result.patientId = patientData.patientId || 'PAT-001';
-    if (doctorId) result.doctorId = doctorId;
-    result.predictedAt = new Date().toISOString();
-
-    await saveToFirestore('predictions', result.predictionId, result);
-    inMemoryStore.predictions.set(result.predictionId, result);
-    return result;
+    predictionData = response.data;
   } catch (error) {
     console.warn('[AI Service] Running dynamic Random Forest & XGBoost Ensemble prediction.');
     
@@ -141,10 +135,7 @@ const predictBampOutcome = async (patientData) => {
     if (successProbability < 70.0) riskLevel = 'High Risk';
     else if (successProbability < 85.0) riskLevel = 'Moderate Risk';
 
-    const result = {
-      predictionId: `PRED-${Date.now()}`,
-      patientId: patientData.patientId || 'PAT-001',
-      doctorId,
+    predictionData = {
       successProbability,
       confidenceScore: 0.94,
       riskLevel,
@@ -155,14 +146,40 @@ const predictBampOutcome = async (patientData) => {
         { feature: `Chronological Age (${age} yrs, ${gender})`, importance: 0.18, impact: age <= 12 ? 'Positive' : 'Negative' },
         { feature: `Wits Appraisal (${witsVal.toFixed(1)} mm)`, importance: 0.12, impact: witsVal >= -3 ? 'Positive' : 'Negative' },
         { feature: `FMA Plane Angle (${fmaVal.toFixed(1)}°)`, importance: 0.10, impact: fmaVal <= 30 ? 'Positive' : 'Negative' }
-      ],
-      predictedAt: new Date().toISOString()
+      ]
     };
-
-    await saveToFirestore('predictions', result.predictionId, result);
-    inMemoryStore.predictions.set(result.predictionId, result);
-    return result;
   }
+
+  const predictionId = `PRED-${Date.now()}`;
+  const record = {
+    predictionId,
+    patientId: patientData.patientId || 'PAT-001',
+    doctorId,
+    predictionScore: predictionData.successProbability / 100.0,
+    successProbability: predictionData.successProbability,
+    riskFactors: predictionData.featureImportance || [],
+    recommendations: predictionData.riskLevel === 'Success'
+      ? 'Approved for 4-point BAMP mini-plate surgical protraction protocol with 150g-250g intermaxillary elastics.'
+      : 'Consider combined orthognathic surgical planning or dental compensation.',
+    modelVersion: 'Random Forest + XGBoost Ensemble v2.4',
+    riskLevel: predictionData.riskLevel,
+    confidenceScore: predictionData.confidenceScore || 0.94,
+    modelsUsed: predictionData.modelsUsed || ['Random Forest', 'XGBoost'],
+    featureImportance: predictionData.featureImportance || [],
+    createdAt: new Date().toISOString()
+  };
+
+  await saveToFirestore('predictions', predictionId, record);
+  inMemoryStore.predictions.set(predictionId, record);
+
+  // Update patient document with prediction result
+  if (db && patientData.patientId) {
+    try {
+      await db.collection('patients').doc(patientData.patientId).set({ predictionResult: record }, { merge: true });
+    } catch (e) {}
+  }
+
+  return record;
 };
 
 const saveToFirestore = async (collectionName, docId, data) => {

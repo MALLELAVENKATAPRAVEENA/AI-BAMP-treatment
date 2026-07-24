@@ -39,17 +39,22 @@ const registerUser = async (userData) => {
 
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
+  const uid = `user-${Date.now()}`;
 
   const newUserObj = {
-    uid: `user-${Date.now()}`,
+    uid,
+    name: fullName,
     fullName,
     email: normalizedEmail,
     mobileNumber: mobileNumber || '',
     hospitalName: hospitalName || '',
     role: role || 'Orthodontist',
+    photoURL: null,
     password: hashedPassword,
     isVerified: true,
+    isActive: true,
     createdAt: new Date().toISOString(),
+    lastLogin: new Date().toISOString(),
     lastLoginAt: new Date().toISOString()
   };
 
@@ -57,6 +62,7 @@ const registerUser = async (userData) => {
   if (db) {
     try {
       await db.collection('users').doc(normalizedEmail).set(newUserObj);
+      await db.collection('users').doc(uid).set(newUserObj);
       console.log(`[Firebase Firestore] User registered & stored in 'users' collection: ${normalizedEmail}`);
     } catch (e) {
       console.warn('[Firestore] Save user fallback to memory store:', e.message);
@@ -106,14 +112,15 @@ const loginUser = async (email, password) => {
     throw new Error('Invalid Password');
   }
 
-  const lastLoginAt = new Date().toISOString();
-  userRecord.lastLoginAt = lastLoginAt;
+  const lastLogin = new Date().toISOString();
+  userRecord.lastLogin = lastLogin;
+  userRecord.lastLoginAt = lastLogin;
 
-  // 2. Update lastLoginAt in Firebase Firestore
+  // 2. Update lastLogin in Firebase Firestore
   if (db) {
     try {
-      await db.collection('users').doc(normalizedEmail).update({ lastLoginAt });
-      console.log(`[Firebase Firestore] Updated lastLoginAt for: ${normalizedEmail}`);
+      await db.collection('users').doc(normalizedEmail).update({ lastLogin, lastLoginAt: lastLogin });
+      console.log(`[Firebase Firestore] Updated lastLogin for: ${normalizedEmail}`);
     } catch (e) {
       console.warn('[Firestore] Login timestamp update fallback:', e.message);
     }
@@ -124,10 +131,10 @@ const loginUser = async (email, password) => {
     uid: userRecord.uid,
     email: userRecord.email,
     role: userRecord.role,
-    fullName: userRecord.fullName
+    fullName: userRecord.fullName || userRecord.name
   });
 
-  await logAction({ userId: userRecord.uid, userName: userRecord.fullName, role: userRecord.role, action: 'USER_LOGIN_FIREBASE', target: normalizedEmail });
+  await logAction({ userId: userRecord.uid, userName: userRecord.fullName || userRecord.name, role: userRecord.role, action: 'USER_LOGIN_FIREBASE', target: normalizedEmail });
 
   const { password: pass, ...safeUser } = userRecord;
   return { token, user: safeUser };
@@ -187,7 +194,7 @@ const resetPassword = async (email, token, newPassword) => {
   }
   inMemoryStore.users.set(normalizedEmail, userRecord);
 
-  await logAction({ userId: userRecord.uid, userName: userRecord.fullName, role: userRecord.role, action: 'USER_PASSWORD_RESET_FIREBASE', target: normalizedEmail });
+  await logAction({ userId: userRecord.uid, userName: userRecord.fullName || userRecord.name, role: userRecord.role, action: 'USER_PASSWORD_RESET_FIREBASE', target: normalizedEmail });
   return { message: 'Password updated successfully' };
 };
 

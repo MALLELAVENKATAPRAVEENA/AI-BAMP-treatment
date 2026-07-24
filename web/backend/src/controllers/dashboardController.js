@@ -9,6 +9,8 @@ const getDashboardStats = async (req, res, next) => {
     let predictionsList = [];
     let xraysList = [];
     let reportsList = [];
+    let usersList = [];
+    let recentActivities = [];
 
     if (db && doctorId) {
       try {
@@ -23,24 +25,35 @@ const getDashboardStats = async (req, res, next) => {
 
         const repSnap = await db.collection('reports').where('doctorId', '==', doctorId).get();
         reportsList = repSnap.docs.map(doc => doc.data());
+
+        const userSnap = await db.collection('users').get();
+        usersList = userSnap.docs.map(doc => doc.data());
+
+        const auditSnap = await db.collection('audit_logs').orderBy('timestamp', 'desc').limit(5).get();
+        if (!auditSnap.empty) {
+          recentActivities = auditSnap.docs.map(doc => doc.data());
+        }
       } catch (e) {
         console.warn('[Firestore] Dashboard query using in-memory store metrics fallback');
         patientsList = Array.from(inMemoryStore.patients.values()).filter(p => p.doctorId === doctorId);
         predictionsList = Array.from(inMemoryStore.predictions.values()).filter(p => p.doctorId === doctorId);
         xraysList = Array.from(inMemoryStore.xrays.values()).filter(p => p.doctorId === doctorId);
         reportsList = Array.from(inMemoryStore.reports.values()).filter(p => p.doctorId === doctorId);
+        usersList = Array.from(inMemoryStore.users.values());
       }
     } else if (doctorId) {
       patientsList = Array.from(inMemoryStore.patients.values()).filter(p => p.doctorId === doctorId);
       predictionsList = Array.from(inMemoryStore.predictions.values()).filter(p => p.doctorId === doctorId);
       xraysList = Array.from(inMemoryStore.xrays.values()).filter(p => p.doctorId === doctorId);
       reportsList = Array.from(inMemoryStore.reports.values()).filter(p => p.doctorId === doctorId);
+      usersList = Array.from(inMemoryStore.users.values());
     }
 
     const totalPatients = patientsList.length;
     const totalPredictions = predictionsList.length;
     const totalXrays = xraysList.length;
     const totalReports = reportsList.length;
+    const totalUsers = Math.max(usersList.length, 1);
 
     // Calculate dynamic risk level distributions for THIS doctor
     const successfulCases = predictionsList.filter(p => (p.riskLevel === 'Success' || p.successProbability >= 85)).length;
@@ -64,6 +77,7 @@ const getDashboardStats = async (req, res, next) => {
     const stats = {
       widgets: {
         totalPatients,
+        totalUsers,
         newPatientsThisMonth: totalPatients,
         predictionCount: totalPredictions,
         successfulCases,
@@ -72,6 +86,13 @@ const getDashboardStats = async (req, res, next) => {
         uploadedXrays: totalXrays,
         reportsGenerated: totalReports,
         averageSuccessRate: Number(avgSuccessRate.toFixed(1))
+      },
+      recent: {
+        recentPatients: patientsList.slice(-5).reverse(),
+        recentUploads: xraysList.slice(-5).reverse(),
+        recentPredictions: predictionsList.slice(-5).reverse(),
+        recentReports: reportsList.slice(-5).reverse(),
+        recentActivities
       },
       charts: {
         successRateTrend: [
