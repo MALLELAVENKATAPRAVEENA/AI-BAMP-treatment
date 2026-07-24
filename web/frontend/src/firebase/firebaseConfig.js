@@ -3,16 +3,27 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
-const apiKey = import.meta.env.VITE_FIREBASE_API_KEY || "";
-const isValidKey = apiKey && !apiKey.includes("Dummy") && !apiKey.includes("Production");
+const envApiKey = import.meta.env.VITE_FIREBASE_API_KEY || "";
+const envAppId = import.meta.env.VITE_FIREBASE_APP_ID || "";
+
+// Detect if user passed App ID into VITE_FIREBASE_API_KEY
+let finalApiKey = envApiKey.startsWith("AIzaSy") ? envApiKey : "";
+let finalAppId = envAppId;
+let finalSenderId = import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "824105088863";
+
+if (envApiKey.startsWith("1:")) {
+  finalAppId = envApiKey;
+  const parts = envApiKey.split(":");
+  if (parts.length > 1) finalSenderId = parts[1];
+}
 
 const firebaseConfig = {
-  apiKey: isValidKey ? apiKey : "AIzaSyBamp1de96RealApiKeyPlaceholder",
+  apiKey: finalApiKey || "AIzaSyBamp1de96WebClientApiKey2026",
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "bamp-1de96.firebaseapp.com",
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "bamp-1de96",
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "bamp-1de96.appspot.com",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "111605092071944690207",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:111605092071944690207:web:bamp1de96app"
+  messagingSenderId: finalSenderId,
+  appId: finalAppId || "1:824105088863:web:c9c542beec73897aa8a8ea"
 };
 
 let app;
@@ -26,7 +37,7 @@ try {
   db = getFirestore(app);
   storage = getStorage(app);
 } catch (err) {
-  console.warn('[Firebase SDK Notice] Web Firebase Auth SDK initialization note:', err.message);
+  console.warn('[Firebase SDK Notice] Web Firebase SDK initialization note:', err.message);
 }
 
 export const googleProvider = new GoogleAuthProvider();
