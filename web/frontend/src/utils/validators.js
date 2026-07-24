@@ -11,8 +11,8 @@ export const passwordValidationSchema = yup.string()
 
 export const signupSchema = yup.object().shape({
   fullName: yup.string().required('Full Name is required'),
-  mobileNumber: yup.string().required('Phone Number is required'),
-  phoneNumber: yup.string(),
+  email: yup.string().email('Invalid email address').required('Email Address is required'),
+  mobileNumber: yup.string().required('Mobile Number is required'),
   hospitalName: yup.string().required('Hospital Name is required'),
   password: passwordValidationSchema,
   confirmPassword: yup.string()
@@ -21,7 +21,7 @@ export const signupSchema = yup.object().shape({
 });
 
 export const loginSchema = yup.object().shape({
-  mobileNumber: yup.string().required('Phone Number is required'),
+  email: yup.string().email('Invalid email address').required('Email Address is required'),
   password: yup.string().required('Password is required')
 });
 

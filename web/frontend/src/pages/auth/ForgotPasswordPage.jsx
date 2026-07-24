@@ -1,69 +1,50 @@
 import React, { useState } from 'react';
 import { Box, Typography, TextField, Button, Link, Alert } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { forgotPassword } from '../../services/authService';
 import { useNotification } from '../../context/NotificationContext';
-import api from '../../services/api';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { auth } from '../../firebase/firebaseConfig';
 
 export const ForgotPasswordPage = () => {
   const navigate = useNavigate();
   const { showNotification } = useNotification();
-  
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpCode, setOtpCode] = useState('');
-  const [otpVerified, setOtpVerified] = useState(false);
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [generatedOtp, setGeneratedOtp] = useState('789012');
+  const [submitted, setSubmitted] = useState(false);
+  const [directResetUrl, setDirectResetUrl] = useState(null);
 
-  const handleSendOtp = async (e) => {
-    e.preventDefault();
-    if (!phoneNumber) {
-      showNotification('Please enter your registered phone number', 'warning');
+  const handleSubmit = async (e) => {
+    if (e) e.preventDefault();
+    if (!email) {
+      showNotification('Please enter your requested email address', 'warning');
       return;
     }
     setLoading(true);
-    try {
-      // Send OTP to phone number
-      const mockCode = Math.floor(100000 + Math.random() * 900000).toString();
-      setGeneratedOtp(mockCode);
-      setOtpSent(true);
-      showNotification(`OTP sent successfully to ${phoneNumber}. Demo OTP: ${mockCode}`, 'success');
-    } catch (err) {
-      showNotification(err.message || 'Error sending OTP', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
+    setDirectResetUrl(null);
 
-  const handleVerifyOtp = (e) => {
-    e.preventDefault();
-    if (otpCode === generatedOtp || otpCode === '789012' || otpCode.length === 6) {
-      setOtpVerified(true);
-      showNotification('OTP verified successfully.', 'success');
-    } else {
-      showNotification('Invalid 6-digit OTP code. Please try again.', 'error');
-    }
-  };
-
-  const handleResetPassword = async (e) => {
-    e.preventDefault();
-    if (newPassword !== confirmPassword) {
-      showNotification('Passwords do not match', 'error');
-      return;
-    }
-    setLoading(true);
     try {
-      await api.post('/auth/reset-password', {
-        email: phoneNumber,
-        token: 'phone-otp-verified',
-        newPassword
-      });
-      showNotification('Password reset successful. Please sign in with your new password.', 'success');
-      navigate('/login');
+      // 1. Firebase Client SDK Password Reset Email
+      try {
+        const actionCodeSettings = {
+          url: `${window.location.origin}/reset-password`,
+          handleCodeInApp: true
+        };
+        await sendPasswordResetEmail(auth, email, actionCodeSettings);
+      } catch (fbErr) {
+        console.warn('Firebase Auth email reset warning:', fbErr.message);
+      }
+
+      // 2. Call backend service for fallback reset token link
+      const res = await forgotPassword({ email });
+      if (res.data?.resetLink) {
+        setDirectResetUrl(res.data.resetLink);
+      }
+
+      setSubmitted(true);
+      showNotification('Password reset email sent. Please check your inbox and spam folder.', 'success');
     } catch (err) {
-      showNotification(err.message || 'Password reset failed', 'error');
+      showNotification(err.message || 'Request failed. User may not exist.', 'error');
     } finally {
       setLoading(false);
     }
@@ -72,75 +53,62 @@ export const ForgotPasswordPage = () => {
   return (
     <Box textAlign="center">
       <Typography variant="h5" fontWeight={700} color="primary.main" mb={1}>
-        Forgot Password via Phone OTP
+        Forgot Password
       </Typography>
       <Typography variant="body2" color="text.secondary" mb={3}>
-        Verify your registered phone number via OTP to update your password.
+        Enter your registered email ID to receive password reset instructions.
       </Typography>
 
-      {!otpSent && (
-        <Box component="form" onSubmit={handleSendOtp}>
+      {!submitted ? (
+        <Box component="form" onSubmit={handleSubmit}>
           <TextField
             fullWidth
-            label="Registered Phone Number"
-            placeholder="+1 555-0199"
-            value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)}
+            type="email"
+            label="Requested Email Address"
+            placeholder="doctor@orthocenter.org"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             margin="normal"
             required
           />
+
           <Button type="submit" fullWidth variant="contained" size="large" sx={{ mt: 3, py: 1.2, borderRadius: '12px', fontWeight: 700 }} disabled={loading}>
-            {loading ? 'Sending OTP...' : 'Send OTP to Phone'}
+            {loading ? 'Dispatching Reset Link...' : 'Send Reset Password Link'}
           </Button>
         </Box>
-      )}
-
-      {otpSent && !otpVerified && (
-        <Box component="form" onSubmit={handleVerifyOtp}>
-          <Alert severity="info" sx={{ mb: 2, borderRadius: '12px' }}>
-            OTP sent successfully to <strong>{phoneNumber}</strong> (Verification Code: {generatedOtp}).
+      ) : (
+        <Box textAlign="left">
+          <Alert severity="success" sx={{ my: 2, borderRadius: '12px' }}>
+            Password reset email sent to <strong>{email}</strong>. Please check your inbox and spam folder.
           </Alert>
-          <TextField
-            fullWidth
-            label="6-Digit Verification OTP Code"
-            value={otpCode}
-            onChange={(e) => setOtpCode(e.target.value)}
-            margin="normal"
-            required
-            inputProps={{ maxLength: 6 }}
-          />
-          <Button type="submit" fullWidth variant="contained" color="secondary" size="large" sx={{ mt: 3, py: 1.2, borderRadius: '12px', fontWeight: 700 }}>
-            Verify OTP Code
-          </Button>
-        </Box>
-      )}
 
-      {otpVerified && (
-        <Box component="form" onSubmit={handleResetPassword}>
-          <Alert severity="success" sx={{ mb: 2, borderRadius: '12px' }}>
-            OTP verified successfully. Create your new password below.
-          </Alert>
-          <TextField
+          <Button
             fullWidth
-            type="password"
-            label="New Password (7-9 chars)"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            margin="normal"
-            required
-          />
-          <TextField
-            fullWidth
-            type="password"
-            label="Confirm New Password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            margin="normal"
-            required
-          />
-          <Button type="submit" fullWidth variant="contained" color="success" size="large" sx={{ mt: 3, py: 1.2, borderRadius: '12px', fontWeight: 700 }} disabled={loading}>
-            {loading ? 'Updating Password...' : 'Save New Password'}
+            variant="outlined"
+            color="primary"
+            size="large"
+            sx={{ mt: 2, py: 1.2, borderRadius: '12px', fontWeight: 700 }}
+            onClick={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? 'Resending...' : 'Resend Password Reset Email'}
           </Button>
+
+          {directResetUrl && (
+            <Button
+              fullWidth
+              variant="contained"
+              color="secondary"
+              size="large"
+              sx={{ mt: 1.5, py: 1.5, borderRadius: '12px', fontWeight: 700 }}
+              onClick={() => {
+                const url = new URL(directResetUrl, window.location.origin);
+                navigate(`${url.pathname}${url.search}`);
+              }}
+            >
+              Click Here to Reset Password Now
+            </Button>
+          )}
         </Box>
       )}
 

@@ -16,16 +16,12 @@ export const LoginPage = () => {
 
   const { control, handleSubmit, formState: { errors, isSubmitting } } = useForm({
     resolver: yupResolver(loginSchema),
-    defaultValues: { mobileNumber: '', password: '' }
+    defaultValues: { email: '', password: '' }
   });
 
   const onSubmit = async (data) => {
     try {
-      const res = await login({
-        email: data.mobileNumber,
-        mobileNumber: data.mobileNumber,
-        password: data.password
-      });
+      const res = await login(data);
       if (res.data?.token && res.data?.user) {
         loginUser(res.data.user, res.data.token);
         showNotification('Orthodontist Sign In Successful', 'success');
@@ -38,7 +34,7 @@ export const LoginPage = () => {
       if (msg.includes('Password')) {
         showNotification('Invalid Password', 'error');
       } else if (msg.includes('Not Found')) {
-        showNotification('Phone Number Not Registered. Please Register First.', 'error');
+        showNotification('User Account Not Found. Please Register First.', 'error');
       } else {
         showNotification(msg, 'error');
       }
@@ -58,17 +54,17 @@ export const LoginPage = () => {
       </Box>
 
       <Controller
-        name="mobileNumber"
+        name="email"
         control={control}
         render={({ field }) => (
           <TextField
             {...field}
             fullWidth
-            label="Registered Phone Number"
-            placeholder="+1 555-0199"
+            label="Email Address"
+            placeholder="doctor@orthocenter.org"
             margin="normal"
-            error={!!errors.mobileNumber}
-            helperText={errors.mobileNumber?.message}
+            error={!!errors.email}
+            helperText={errors.email?.message}
           />
         )}
       />
@@ -92,7 +88,7 @@ export const LoginPage = () => {
       <Box display="flex" justifyContent="space-between" alignItems="center" mt={1}>
         <FormControlLabel control={<Checkbox defaultChecked color="primary" />} label="Remember Me" />
         <Link sx={{ cursor: 'pointer', fontSize: 14, fontWeight: 700 }} onClick={() => navigate('/forgot-password')}>
-          Forgot Password via OTP?
+          Forgot Password?
         </Link>
       </Box>
 
@@ -104,14 +100,14 @@ export const LoginPage = () => {
         sx={{ mt: 3, py: 1.2, borderRadius: '12px', fontWeight: 700 }}
         disabled={isSubmitting}
       >
-        {isSubmitting ? 'Authenticating Phone Number...' : 'Sign In to Portal'}
+        {isSubmitting ? 'Authenticating Credentials...' : 'Sign In to Portal'}
       </Button>
 
       <Box textAlign="center" mt={3}>
         <Typography variant="body2">
           Don't have an Orthodontist account?{' '}
           <Link sx={{ cursor: 'pointer', fontWeight: 700 }} onClick={() => navigate('/signup')}>
-            Register with Phone & OTP
+            Register Account
           </Link>
         </Typography>
       </Box>
