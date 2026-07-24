@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">AI BAMP Predictor</string>
+    <string name="medical_subheading">Class III Malocclusion Clinical Portal</string>
+    <string name="sign_in">Sign In to Portal</string>
+    <string name="register">Register Orthodontist Account</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="send_otp">Send Verification Code</string>
+    <string name="verify_otp">Verify Code &amp; Set Password</string>
+</resources>
