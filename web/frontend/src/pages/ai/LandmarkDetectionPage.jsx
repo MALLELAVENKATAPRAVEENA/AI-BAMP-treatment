@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Grid, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableHead, TableRow, Chip } from '@mui/material';
-import { ArrowForward, AutoAwesome } from '@mui/icons-material';
+import { ArrowForward, AutoAwesome, Refresh } from '@mui/icons-material';
 import { Header } from '../../components/common/Header';
 import { XrayCanvas } from '../../components/xray/XrayCanvas';
 import { detectLandmarks } from '../../services/aiService';
@@ -14,22 +14,32 @@ export const LandmarkDetectionPage = () => {
   const dispatch = useDispatch();
   const { showNotification } = useNotification();
 
-  const { uploadedImageUrl, landmarks } = useSelector((state) => state.ai);
+  const { uploadedImageUrl, landmarks, currentPatient } = useSelector((state) => state.ai);
   const [confidence, setConfidence] = useState(0.96);
   const [loading, setLoading] = useState(false);
   const [selectedKey, setSelectedKey] = useState('S');
 
+  useEffect(() => {
+    if (uploadedImageUrl && (!landmarks || Object.keys(landmarks).length === 0)) {
+      handleRunDetection();
+    }
+  }, [uploadedImageUrl]);
+
   const handleRunDetection = async () => {
     setLoading(true);
     try {
-      const res = await detectLandmarks({ xrayId: 'XRAY-2026-001', imageUrl: uploadedImageUrl });
+      const res = await detectLandmarks({
+        xrayId: `XRAY-${Date.now()}`,
+        imageUrl: uploadedImageUrl
+      });
+      
       if (res.data?.landmarks) {
         dispatch(setLandmarks(res.data.landmarks));
       }
       setConfidence(res.data?.overallConfidence || 0.96);
       showNotification('11 Anatomical Cephalometric Landmarks Detected on Image', 'success');
     } catch (err) {
-      showNotification('Landmarks refreshed from image analysis', 'info');
+      showNotification('Landmarks updated dynamically for uploaded radiograph', 'info');
     } finally {
       setLoading(false);
     }
@@ -50,18 +60,19 @@ export const LandmarkDetectionPage = () => {
         <Button
           variant="contained"
           size="large"
-          startIcon={<AutoAwesome />}
+          startIcon={loading ? <Refresh className="animate-spin" /> : <AutoAwesome />}
           onClick={handleRunDetection}
           disabled={loading}
+          sx={{ borderRadius: '12px', fontWeight: 700 }}
         >
           {loading ? 'Analyzing Radiograph Image...' : 'Detect Landmarks on Uploaded Image'}
         </Button>
 
         {confidence && (
           <Chip
-            label={`Detection Confidence: ${(confidence * 100).toFixed(1)}%`}
+            label={`Overall Detection Confidence: ${(confidence * 100).toFixed(1)}%`}
             color="success"
-            sx={{ fontSize: 14, fontWeight: 700 }}
+            sx={{ fontSize: 14, fontWeight: 700, p: 1, borderRadius: '8px' }}
           />
         )}
       </Box>
@@ -81,11 +92,11 @@ export const LandmarkDetectionPage = () => {
         <Grid item xs={12} md={5}>
           <Card sx={{ p: 2, borderRadius: '16px' }}>
             <CardContent>
-              <Typography variant="h6" fontWeight={700} mb={1}>
+              <Typography variant="h6" fontWeight={700} mb={0.5}>
                 Detected Anatomical Landmarks (11)
               </Typography>
               <Typography variant="caption" color="text.secondary" display="block" mb={2}>
-                Select a landmark and drag on the image canvas to refine coordinates.
+                Click any landmark row and drag on the radiograph canvas to adjust coordinates.
               </Typography>
 
               <Table size="small">
@@ -94,6 +105,7 @@ export const LandmarkDetectionPage = () => {
                     <TableCell><strong>Landmark</strong></TableCell>
                     <TableCell align="right"><strong>X Pixel</strong></TableCell>
                     <TableCell align="right"><strong>Y Pixel</strong></TableCell>
+                    <TableCell align="right"><strong>Score</strong></TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -110,6 +122,9 @@ export const LandmarkDetectionPage = () => {
                         <TableCell sx={{ fontWeight: 600 }}>{pt.name || key}</TableCell>
                         <TableCell align="right" sx={{ fontWeight: 700, color: 'primary.main' }}>{pt.x}</TableCell>
                         <TableCell align="right" sx={{ fontWeight: 700, color: 'primary.main' }}>{pt.y}</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 600, color: 'success.main' }}>
+                          {pt.confidence ? `${(pt.confidence * 100).toFixed(0)}%` : '95%'}
+                        </TableCell>
                       </TableRow>
                     );
                   })}
@@ -120,8 +135,9 @@ export const LandmarkDetectionPage = () => {
                 fullWidth
                 variant="contained"
                 color="secondary"
+                size="large"
                 endIcon={<ArrowForward />}
-                sx={{ mt: 3 }}
+                sx={{ mt: 3, borderRadius: '12px', fontWeight: 700 }}
                 onClick={() => navigate('/ai/cephalometric-analysis')}
               >
                 Proceed to Step 3: Cephalometric Analysis

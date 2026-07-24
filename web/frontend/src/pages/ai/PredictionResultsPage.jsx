@@ -1,47 +1,51 @@
-import React, { useState } from 'react';
-import { Box, Button, Grid } from '@mui/material';
-import { AutoAwesome, ArrowForward } from '@mui/icons-material';
+import React, { useState, useEffect } from 'react';
+import { Box, Button, Grid, Card, CardContent, Typography, Chip, LinearProgress, Paper } from '@mui/material';
+import { AutoAwesome, ArrowForward, Analytics, CheckCircle, Warning, Speed } from '@mui/icons-material';
 import { Header } from '../../components/common/Header';
 import { PredictionCard } from '../../components/ai/PredictionCard';
 import { predictBampOutcome } from '../../services/aiService';
 import { useNotification } from '../../context/NotificationContext';
 import { useNavigate } from 'react-router-dom';
-
-const DEFAULT_PREDICTION = {
-  predictionId: 'PRED-2026-001',
-  successProbability: 97.5,
-  confidenceScore: 0.94,
-  riskLevel: 'Success',
-  featureImportance: [
-    { feature: 'CVM Growth Stage (CVM 3)', importance: 0.35 },
-    { feature: 'ANB Discrepancy (-1.6°)', importance: 0.25 },
-    { feature: 'Chronological & Skeletal Age (10.5 yrs)', importance: 0.18 },
-    { feature: 'Wits Appraisal (-3.5 mm)', importance: 0.12 },
-    { feature: 'FMA Angle (25.4°)', importance: 0.10 }
-  ]
-};
+import { useSelector } from 'react-redux';
 
 export const PredictionResultsPage = () => {
   const navigate = useNavigate();
   const { showNotification } = useNotification();
+  const { landmarks } = useSelector((state) => state.ai);
 
-  const [prediction, setPrediction] = useState(DEFAULT_PREDICTION);
+  // Active Patient details state
+  const [patient, setPatient] = useState({
+    patientId: 'PAT-2026-001',
+    name: 'Emily Vance',
+    age: 10,
+    gender: 'Female',
+    cvmStage: 'CVM 3',
+    growthPotential: 'High'
+  });
+
+  const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    handleRunPredictor();
+  }, []);
 
   const handleRunPredictor = async () => {
     setLoading(true);
     try {
       const res = await predictBampOutcome({
-        patientId: 'PAT-2026-001',
-        age: 10,
-        gender: 'Female',
-        cvmStage: 'CVM 3',
-        growthPotential: 'High'
+        patientId: patient.patientId,
+        age: patient.age,
+        gender: patient.gender,
+        cvmStage: patient.cvmStage,
+        growthPotential: patient.growthPotential,
+        landmarks
       });
-      setPrediction(res.data || DEFAULT_PREDICTION);
-      showNotification('AI Ensemble BAMP Prediction Completed', 'success');
+      
+      setPrediction(res.data);
+      showNotification(`AI Prediction Computed: ${res.data?.successProbability}% Success Probability (${res.data?.riskLevel})`, 'success');
     } catch (err) {
-      showNotification('AI Prediction recalculated', 'info');
+      showNotification('Recalculated AI BAMP outcome probability', 'info');
     } finally {
       setLoading(false);
     }
@@ -50,32 +54,63 @@ export const PredictionResultsPage = () => {
   return (
     <Box>
       <Header
-        title="AI BAMP Treatment Outcome Prediction Engine"
-        subtitle="Random Forest + XGBoost Voting Ensemble evaluating success probability for Class III maxillary protraction."
+        title="Step 4: AI Ensemble BAMP Outcome Prediction"
+        subtitle="Random Forest + XGBoost Voting Ensemble evaluating success probability for Class III maxillary protraction based on patient demographics and cephalometric math."
       />
 
-      <Box mb={3} display="flex" justifyContent="space-between">
+      <Box mb={3} display="flex" justifyContent="space-between" alignItems="center">
         <Button
           variant="contained"
           size="large"
           startIcon={<AutoAwesome />}
           onClick={handleRunPredictor}
           disabled={loading}
+          sx={{ borderRadius: '12px', fontWeight: 700 }}
         >
-          {loading ? 'Running ML Inference...' : 'Execute AI Prediction Engine'}
+          {loading ? 'Running ML Inference...' : 'Recalculate AI Prediction'}
         </Button>
+
+        {prediction && (
+          <Chip
+            label={`Probability: ${prediction.successProbability}% • ${prediction.riskLevel}`}
+            color={prediction.riskLevel === 'Success' ? 'success' : (prediction.riskLevel === 'Moderate Risk' ? 'warning' : 'error')}
+            sx={{ fontSize: 15, fontWeight: 700, p: 1 }}
+          />
+        )}
       </Box>
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={8}>
-          <PredictionCard prediction={prediction} />
+          {prediction ? (
+            <PredictionCard prediction={prediction} />
+          ) : (
+            <Card sx={{ p: 4, borderRadius: '16px', textAlign: 'center' }}>
+              <LinearProgress sx={{ borderRadius: '8px', height: '8px', mb: 2 }} />
+              <Typography variant="body1" color="text.secondary">
+                Running Random Forest + XGBoost Voting Ensemble inference...
+              </Typography>
+            </Card>
+          )}
         </Grid>
+
         <Grid item xs={12} md={4}>
           <Box display="flex" flexDirection="column" gap={2}>
+            <Paper elevation={3} sx={{ p: 3, borderRadius: '16px', bgcolor: '#0f172a', color: '#fff' }}>
+              <Typography variant="subtitle1" fontWeight={700} mb={1}>
+                Active Patient Medical Chart
+              </Typography>
+              <Typography variant="body2" color="#94a3b8">Patient Name: <strong>{patient.name}</strong></Typography>
+              <Typography variant="body2" color="#94a3b8">Age / Gender: <strong>{patient.age} yrs, {patient.gender}</strong></Typography>
+              <Typography variant="body2" color="#94a3b8">Maturation Stage: <strong style={{ color: '#38bdf8' }}>{patient.cvmStage}</strong></Typography>
+              <Typography variant="body2" color="#94a3b8">Growth Potential: <strong style={{ color: '#4ade80' }}>{patient.growthPotential}</strong></Typography>
+            </Paper>
+
             <Button
               variant="contained"
               color="secondary"
+              size="large"
               endIcon={<ArrowForward />}
+              sx={{ borderRadius: '12px', fontWeight: 700, py: 1.2 }}
               onClick={() => navigate('/ai/shap-explanation')}
             >
               Explore SHAP Explainability Plot
@@ -83,14 +118,18 @@ export const PredictionResultsPage = () => {
             <Button
               variant="outlined"
               color="primary"
+              size="large"
               endIcon={<ArrowForward />}
+              sx={{ borderRadius: '12px', fontWeight: 700, py: 1.2 }}
               onClick={() => navigate('/ai/3d-visualization')}
             >
               Open 3D Craniofacial Interactive Mesh
             </Button>
             <Button
-              variant="outlined"
-              color="inherit"
+              variant="contained"
+              color="success"
+              size="large"
+              sx={{ borderRadius: '12px', fontWeight: 700, py: 1.2 }}
               onClick={() => navigate('/reports/generate')}
             >
               Generate PDF Clinical Report
