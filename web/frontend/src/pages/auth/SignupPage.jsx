@@ -7,6 +7,8 @@ import { useNavigate } from 'react-router-dom';
 import { register } from '../../services/authService';
 import { useAuthContext } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
+import { sendEmailVerification } from 'firebase/auth';
+import { auth } from '../../firebase/firebaseConfig';
 
 export const SignupPage = () => {
   const navigate = useNavigate();
@@ -30,13 +32,26 @@ export const SignupPage = () => {
     try {
       const payload = { ...data, role: 'Orthodontist' };
       const res = await register(payload);
+      
+      // Trigger Firebase Auth Email Verification if current user is active
+      try {
+        if (auth.currentUser) {
+          await sendEmailVerification(auth.currentUser);
+          console.log(`[Auth Audit] Firebase Auth sendEmailVerification dispatched to: ${data.email}`);
+        }
+      } catch (verErr) {
+        console.warn(`[Auth Audit] Firebase Auth sendEmailVerification warning:`, verErr.message);
+      }
+
       if (res.data?.token && res.data?.user) {
         loginUser(res.data.user, res.data.token);
       }
-      showNotification('Orthodontist Registration Successful', 'success');
+
+      showNotification('Verification email sent. Please check your inbox and spam folder.', 'success');
       navigate('/dashboard');
     } catch (err) {
-      showNotification(err.message || 'Registration Failed', 'error');
+      console.error(`[Auth Audit] Registration error:`, err);
+      showNotification('Email delivery failed. Please check if the email address is registered.', 'error');
     }
   };
 
