@@ -29,6 +29,15 @@ const login = async (req, res, next) => {
   }
 };
 
+const googleLogin = async (req, res, next) => {
+  try {
+    const result = await authService.googleLogin(req.body);
+    return sendSuccess(res, 'Google Sign-In Successful', result);
+  } catch (error) {
+    return sendError(res, error.message, 400);
+  }
+};
+
 const forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
@@ -74,6 +83,7 @@ const resetPassword = async (req, res, next) => {
 module.exports = {
   register,
   login,
+  googleLogin,
   forgotPassword,
   verifyOTP,
   resetPassword

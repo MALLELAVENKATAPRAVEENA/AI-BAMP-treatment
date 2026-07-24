@@ -140,6 +140,94 @@ const loginUser = async (email, password) => {
   return { token, user: safeUser };
 };
 
+const googleLogin = async (googleUserData) => {
+  const { uid, email, displayName, photoURL } = googleUserData;
+  if (!email) throw new Error('Google account email is required');
+
+  const normalizedEmail = email.toLowerCase();
+  let userRecord = null;
+
+  if (db) {
+    try {
+      const userDoc = await db.collection('users').doc(normalizedEmail).get();
+      if (userDoc.exists) {
+        userRecord = userDoc.data();
+      }
+    } catch (e) {
+      console.warn('[Firestore] Google login lookup warning:', e.message);
+    }
+  }
+
+  if (!userRecord) {
+    userRecord = inMemoryStore.users.get(normalizedEmail);
+  }
+
+  const now = new Date().toISOString();
+
+  if (!userRecord) {
+    // New User: Create record automatically in Firebase Firestore
+    userRecord = {
+      uid: uid || `google-${Date.now()}`,
+      name: displayName || 'Orthodontist Practitioner',
+      fullName: displayName || 'Orthodontist Practitioner',
+      email: normalizedEmail,
+      photoURL: photoURL || null,
+      role: 'Orthodontist',
+      isVerified: true,
+      isActive: true,
+      authProvider: 'google',
+      createdAt: now,
+      lastLogin: now,
+      lastLoginAt: now
+    };
+
+    if (db) {
+      try {
+        await db.collection('users').doc(normalizedEmail).set(userRecord);
+        await db.collection('users').doc(userRecord.uid).set(userRecord);
+        console.log(`[Firebase Firestore] Created new Google Auth user: ${normalizedEmail}`);
+      } catch (e) {
+        console.warn('[Firestore] Google user save warning:', e.message);
+      }
+    }
+    inMemoryStore.users.set(normalizedEmail, userRecord);
+  } else {
+    // Existing User: Update last login timestamp
+    userRecord.lastLogin = now;
+    userRecord.lastLoginAt = now;
+    if (photoURL) userRecord.photoURL = photoURL;
+
+    if (db) {
+      try {
+        await db.collection('users').doc(normalizedEmail).update({
+          lastLogin: now,
+          lastLoginAt: now,
+          ...(photoURL ? { photoURL } : {})
+        });
+      } catch (e) {}
+    }
+    inMemoryStore.users.set(normalizedEmail, userRecord);
+  }
+
+  const token = generateToken({
+    uid: userRecord.uid,
+    email: userRecord.email,
+    role: userRecord.role || 'Orthodontist',
+    fullName: userRecord.fullName || userRecord.name
+  });
+
+  await logAction({
+    userId: userRecord.uid,
+    userName: userRecord.fullName || userRecord.name,
+    role: userRecord.role || 'Orthodontist',
+    action: 'USER_GOOGLE_LOGIN_FIREBASE',
+    target: normalizedEmail
+  });
+
+  const { password: pass, ...safeUser } = userRecord;
+  return { token, user: safeUser, message: 'Google Sign-In Successful' };
+};
+
 // In-Memory OTP Store Fallback
 const otpStore = new Map();
 
@@ -308,6 +396,7 @@ const confirmPasswordReset = async (email, otpCode, newPassword) => {
 module.exports = {
   registerUser,
   loginUser,
+  googleLogin,
   forgotPassword: requestPasswordReset,
   requestPasswordReset,
   verifyPasswordResetOtp,
