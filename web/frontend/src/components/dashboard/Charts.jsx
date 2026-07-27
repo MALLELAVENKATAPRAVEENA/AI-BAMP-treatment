@@ -57,7 +57,7 @@ export const DashboardCharts = ({ data }) => {
       </Grid>
 
       {/* 3. ML Model Prediction Accuracy */}
-      <Grid item xs={12} md={6}>
+      <Grid item xs={12} md={12}>
         <Card sx={{ p: 2 }}>
           <Typography variant="h6" fontWeight={700} mb={2}>
             AI Model Performance Benchmarks
@@ -72,26 +72,6 @@ export const DashboardCharts = ({ data }) => {
                 <Legend />
                 <Bar dataKey="precision" fill="#10b981" name="Precision %" />
                 <Bar dataKey="f1Score" fill="#0f52ba" name="F1-Score %" />
-              </BarChart>
-            </ResponsiveContainer>
-          </Box>
-        </Card>
-      </Grid>
-
-      {/* 4. Landmark Detection Precision */}
-      <Grid item xs={12} md={6}>
-        <Card sx={{ p: 2 }}>
-          <Typography variant="h6" fontWeight={700} mb={2}>
-            Cephalometric Landmark Detection Precision
-          </Typography>
-          <Box height={280}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={landmarkAccuracy}>
-                <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                <XAxis dataKey="landmark" />
-                <YAxis domain={[90, 100]} unit="%" />
-                <Tooltip />
-                <Bar dataKey="confidence" fill="#8b5cf6" radius={[8, 8, 0, 0]} name="Confidence %" />
               </BarChart>
             </ResponsiveContainer>
           </Box>
