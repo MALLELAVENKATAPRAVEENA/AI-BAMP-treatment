@@ -35,10 +35,31 @@ fun AIChatScreen(
     onNavigateBack: () -> Unit
 ) {
     var message by remember { mutableStateOf("") }
+    var isThinking by remember { mutableStateOf(false) }
     val chatHistory = remember {
         mutableStateListOf(
-            "AI Assistant: Welcome Doctor! Ask me anything regarding Class III BAMP protocols, maxillary protraction, or growth timing."
+            "AI Assistant: Welcome Doctor! I am your AI Orthodontic Assistant trained on Class III BAMP protocols, cephalometrics, and skeletal growth prediction. How can I assist you with your patient case today?"
         )
+    }
+
+    fun generateClinicalResponse(query: String): String {
+        val q = query.lowercase()
+        return when {
+            q.contains("bamp") || q.contains("protocol") || q.contains("plate") ->
+                "AI Assistant: BAMP (Bone-Anchored Maxillary Protraction) Protocol Overview:\n• Mini-plates: 2 in Infrazygomatic Crest (Maxilla) & 2 between Mandibular Canines/Premolars.\n• Intermaxillary Elastics: Continuous Class III force (150g - 250g per side).\n• Optimal Window: Active growth period (CVM 2 to CVM 3 / Skeletal Age 9–12 yrs).\n• Skeletal Advantage: Pure maxillary protraction and mandibular growth redirection without dental compensation or incisor tipping."
+
+            q.contains("cvm") || q.contains("growth") || q.contains("stage") || q.contains("age") ->
+                "AI Assistant: Cervical Vertebral Maturation (CVM) Clinical Guidelines:\n• CVM 1-2 (Pre-peak): Ideal for preliminary BAMP planning & orthopedic expansion.\n• CVM 3 (Peak Pubertal Window): Maximum skeletal response for maxillary protraction.\n• CVM 4 (Post-peak): Moderate orthopedic effect; combined skeletal & dental changes.\n• CVM 5-6 (Growth Completion): Purely dental compensation or orthognathic surgical candidate."
+
+            q.contains("sna") || q.contains("snb") || q.contains("anb") || q.contains("wits") || q.contains("measurement") ->
+                "AI Assistant: Cephalometric Reference Norms for Class III Evaluation:\n• SNA Angle: Norm 82° ± 2. (< 80° indicates Maxillary Retrognathism)\n• SNB Angle: Norm 80° ± 2. (> 82° indicates Mandibular Prognathism)\n• ANB Angle: Norm 2° ± 1.5. (< 0° confirms Skeletal Class III Malocclusion)\n• Wits Appraisal: Norm -1mm to +1mm. (Wits < -3mm indicates severe Class III disparity)\n• IMPA (Lower Incisor Angle): Norm 90° ± 3."
+
+            q.contains("predict") || q.contains("success") || q.contains("risk") ->
+                "AI Assistant: BAMP AI Prediction Methodology:\nOur model combines XGBoost & Deep Neural Networks evaluating 18 cephalometric parameters, CVM growth stage, and chronological age to predict:\n1. Favorable Outcome (>85% Probability): Pure orthopedic correction achieved.\n2. Moderate Risk (70-85% Probability): Partial orthopedic result; mild fixed appliance refinement needed.\n3. High Risk (<70% Probability): High likelihood of post-pubertal mandibular overgrowth requiring surgical intervention."
+
+            else ->
+                "AI Assistant: Doctor, for Class III skeletal malocclusion assessment, BAMP therapy produces optimal maxillary protraction when initiated during CVM 2–3 (skeletal age 9–12 yrs). Please specify if you need landmark coordinates, cephalometric calculations, or patient risk predictions."
+        }
     }
 
     Column(
@@ -106,7 +127,7 @@ fun AIChatScreen(
             OutlinedTextField(
                 value = message,
                 onValueChange = { message = it },
-                placeholder = { Text("Ask about Class III BAMP protocols...") },
+                placeholder = { Text("Ask about Class III BAMP protocols, CVM, or cephalometrics...") },
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true
@@ -118,7 +139,8 @@ fun AIChatScreen(
                         val userMsg = message
                         chatHistory.add("You: $userMsg")
                         message = ""
-                        chatHistory.add("AI Assistant: For Class III malocclusions in growing patients (CVM 2-3), BAMP bone-anchored maxillary protraction produces significant skeletal midface advancement with minimal dental side effects.")
+                        val reply = generateClinicalResponse(userMsg)
+                        chatHistory.add(reply)
                     }
                 },
                 modifier = Modifier.height(54.dp),

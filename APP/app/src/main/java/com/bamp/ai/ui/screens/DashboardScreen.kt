@@ -58,7 +58,7 @@ fun DashboardScreen(
                     color = Color.White
                 )
                 Text(
-                    text = "Real-time BAMP Outcome Monitoring & Firebase Firestore Analytics",
+                    text = "Real-time BAMP Treatment Outcome Monitoring & Live Firebase Firestore Predictive Analytics",
                     fontSize = 11.sp,
                     color = TextSecondary
                 )
@@ -67,32 +67,16 @@ fun DashboardScreen(
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // Quick Action Bar
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        // Quick Action Bar - Add Patient Only
+        Button(
+            onClick = onNavigateToDirectory,
+            modifier = Modifier.fillMaxWidth().height(48.dp),
+            shape = RoundedCornerShape(10.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = PrimarySapphire)
         ) {
-            Button(
-                onClick = onNavigateToDirectory,
-                modifier = Modifier.weight(1f).height(46.dp),
-                shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = SecondaryTeal)
-            ) {
-                Icon(Icons.Default.People, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(6.dp))
-                Text("Patient Directory", fontSize = 13.sp, fontWeight = FontWeight.Bold)
-            }
-
-            Button(
-                onClick = onNavigateToAIChat,
-                modifier = Modifier.weight(1f).height(46.dp),
-                shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = PrimarySapphire)
-            ) {
-                Icon(Icons.Default.SmartToy, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(6.dp))
-                Text("AI Assistant", fontSize = 13.sp, fontWeight = FontWeight.Bold)
-            }
+            Icon(Icons.Default.PersonAdd, contentDescription = null, modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Add Patient", fontSize = 15.sp, fontWeight = FontWeight.Bold)
         }
 
         Spacer(modifier = Modifier.height(18.dp))
