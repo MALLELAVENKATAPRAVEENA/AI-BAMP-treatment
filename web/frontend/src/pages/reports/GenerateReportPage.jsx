@@ -40,7 +40,11 @@ export const GenerateReportPage = () => {
   };
 
   const handleDownload = () => {
-    window.open(`http://localhost:5000/reports/${report.fileName}`, '_blank');
+    if (report?.pdfUrl && !report.pdfUrl.includes('localhost')) {
+      window.open(report.pdfUrl, '_blank');
+    } else {
+      window.print();
+    }
   };
 
   return (

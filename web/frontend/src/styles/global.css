@@ -75,3 +75,18 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  header, nav, sidebar, footer, .MuiFab-root, button {
+    display: none !important;
+  }
+  .MuiContainer-root, main, body {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+}

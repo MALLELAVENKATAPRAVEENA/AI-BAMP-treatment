@@ -44,7 +44,7 @@ export const ReportsListPage = () => {
                 <TableCell>{r.date}</TableCell>
                 <TableCell align="right">
                   <IconButton color="primary" onClick={() => navigate('/reports/generate')}><Visibility /></IconButton>
-                  <IconButton color="secondary" onClick={() => window.open(`http://localhost:5000/reports/report-${r.reportId}.pdf`, '_blank')}><Download /></IconButton>
+                  <IconButton color="secondary" onClick={() => navigate('/reports/generate')}><Download /></IconButton>
                 </TableCell>
               </TableRow>
             ))}

@@ -12,40 +12,45 @@ const getDashboardStats = async (req, res, next) => {
     let usersList = [];
     let recentActivities = [];
 
-    if (db && doctorId) {
+    if (db) {
       try {
-        const pSnap = await db.collection('patients').where('doctorId', '==', doctorId).get();
+        const pSnap = await db.collection('patients').get();
         patientsList = pSnap.docs.map(doc => doc.data());
 
-        const predSnap = await db.collection('predictions').where('doctorId', '==', doctorId).get();
+        const predSnap = await db.collection('predictions').get();
         predictionsList = predSnap.docs.map(doc => doc.data());
 
-        const xraySnap = await db.collection('xrays').where('doctorId', '==', doctorId).get();
-        xraysList = xraySnap.docs.map(doc => doc.data());
+        const xraySnap = await db.collection('xrays').get();
+        if (!xraySnap.empty) {
+          xraysList = xraySnap.docs.map(doc => doc.data());
+        } else {
+          const pxSnap = await db.collection('patient_xrays').get();
+          xraysList = pxSnap.docs.map(doc => doc.data());
+        }
 
-        const repSnap = await db.collection('reports').where('doctorId', '==', doctorId).get();
+        const repSnap = await db.collection('reports').get();
         reportsList = repSnap.docs.map(doc => doc.data());
 
         const userSnap = await db.collection('users').get();
         usersList = userSnap.docs.map(doc => doc.data());
 
-        const auditSnap = await db.collection('audit_logs').orderBy('timestamp', 'desc').limit(5).get();
+        const auditSnap = await db.collection('auditLogs').get();
         if (!auditSnap.empty) {
           recentActivities = auditSnap.docs.map(doc => doc.data());
         }
       } catch (e) {
-        console.warn('[Firestore] Dashboard query using in-memory store metrics fallback');
-        patientsList = Array.from(inMemoryStore.patients.values()).filter(p => p.doctorId === doctorId);
-        predictionsList = Array.from(inMemoryStore.predictions.values()).filter(p => p.doctorId === doctorId);
-        xraysList = Array.from(inMemoryStore.xrays.values()).filter(p => p.doctorId === doctorId);
-        reportsList = Array.from(inMemoryStore.reports.values()).filter(p => p.doctorId === doctorId);
+        console.warn('[Firestore] Dashboard query using in-memory store metrics fallback:', e.message);
+        patientsList = Array.from(inMemoryStore.patients.values());
+        predictionsList = Array.from(inMemoryStore.predictions.values());
+        xraysList = Array.from(inMemoryStore.xrays.values());
+        reportsList = Array.from(inMemoryStore.reports.values());
         usersList = Array.from(inMemoryStore.users.values());
       }
-    } else if (doctorId) {
-      patientsList = Array.from(inMemoryStore.patients.values()).filter(p => p.doctorId === doctorId);
-      predictionsList = Array.from(inMemoryStore.predictions.values()).filter(p => p.doctorId === doctorId);
-      xraysList = Array.from(inMemoryStore.xrays.values()).filter(p => p.doctorId === doctorId);
-      reportsList = Array.from(inMemoryStore.reports.values()).filter(p => p.doctorId === doctorId);
+    } else {
+      patientsList = Array.from(inMemoryStore.patients.values());
+      predictionsList = Array.from(inMemoryStore.predictions.values());
+      xraysList = Array.from(inMemoryStore.xrays.values());
+      reportsList = Array.from(inMemoryStore.reports.values());
       usersList = Array.from(inMemoryStore.users.values());
     }
 
