@@ -31,8 +31,9 @@ fun LoginScreen(
     onNavigateToForgotPassword: () -> Unit,
     onLoginSuccess: () -> Unit
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var email by remember { mutableStateOf(authViewModel.getSavedEmail(context)) }
+    var password by remember { mutableStateOf(authViewModel.getSavedPassword(context)) }
     val loginState by authViewModel.loginState.collectAsState()
 
     LaunchedEffect(loginState) {
@@ -162,6 +163,7 @@ fun SignupScreen(
     onNavigateToLogin: () -> Unit,
     onSignupSuccess: () -> Unit
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var mobile by remember { mutableStateOf("") }
@@ -271,6 +273,8 @@ fun SignupScreen(
 
                 Button(
                     onClick = {
+                        val ctx = context
+                        authViewModel.saveCredentials(ctx, email, password)
                         authViewModel.register(
                             RegisterRequest(
                                 fullName = fullName,

@@ -54,6 +54,27 @@ class AuthViewModel : ViewModel() {
     var currentUser: User? = null
         private set
 
+    fun saveCredentials(context: android.content.Context, email: String, pass: String) {
+        try {
+            val prefs = context.getSharedPreferences("bamp_auth_prefs", android.content.Context.MODE_PRIVATE)
+            prefs.edit().putString("saved_email", email.trim()).putString("saved_pass", pass.trim()).apply()
+        } catch (_: Exception) {}
+    }
+
+    fun getSavedEmail(context: android.content.Context): String {
+        return try {
+            val prefs = context.getSharedPreferences("bamp_auth_prefs", android.content.Context.MODE_PRIVATE)
+            prefs.getString("saved_email", "") ?: ""
+        } catch (_: Exception) { "" }
+    }
+
+    fun getSavedPassword(context: android.content.Context): String {
+        return try {
+            val prefs = context.getSharedPreferences("bamp_auth_prefs", android.content.Context.MODE_PRIVATE)
+            prefs.getString("saved_pass", "") ?: ""
+        } catch (_: Exception) { "" }
+    }
+
     fun login(email: String, pass: String) {
         val cleanEmail = email.trim()
         val cleanPass = pass.trim()
