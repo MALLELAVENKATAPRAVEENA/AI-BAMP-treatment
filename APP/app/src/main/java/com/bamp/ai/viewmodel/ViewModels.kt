@@ -24,10 +24,14 @@ sealed class UiState<out T> {
 }
 
 private fun formatErrorMessage(e: Throwable): String {
-    return when (e) {
-        is JsonSyntaxException -> "Backend returned invalid response format."
-        is ConnectException, is UnknownHostException -> "Server connection timeout. Verify internet connection."
-        else -> e.message ?: "Authentication error occurred."
+    val msg = e.message ?: ""
+    return when {
+        msg.contains("failed to connect", ignoreCase = true) -> "Server Unavailable. Please check your internet connection."
+        msg.contains("172.", ignoreCase = true) || msg.contains("10.0.2.2", ignoreCase = true) -> "Server Unavailable."
+        msg.contains("Firebase", ignoreCase = true) -> "Firebase Connection Failed."
+        e is JsonSyntaxException -> "Backend returned invalid response format."
+        e is ConnectException || e is UnknownHostException -> "No Internet Connection or Server Unavailable."
+        else -> if (msg.isNotBlank()) msg else "An unexpected error occurred. Please try again."
     }
 }
 
