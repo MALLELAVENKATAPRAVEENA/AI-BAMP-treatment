@@ -6,7 +6,6 @@ import {
 } from '@mui/icons-material';
 import { Header } from '../../components/common/Header';
 import { StatCard } from '../../components/common/StatCard';
-import { DashboardCharts } from '../../components/dashboard/Charts';
 import { getDashboardStats } from '../../services/aiService';
 import { useNavigate } from 'react-router-dom';
 
@@ -88,8 +87,7 @@ export const OrthodontistDashboard = () => {
         </Grid>
       </Grid>
 
-      {/* Interactive Charts */}
-      <DashboardCharts data={stats?.charts} />
+
 
       {/* Recent Patients Activity Table */}
       <Box mt={4}>
