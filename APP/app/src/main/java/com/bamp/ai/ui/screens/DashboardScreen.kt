@@ -4,8 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -99,7 +97,17 @@ fun DashboardScreen(
 
         Spacer(modifier = Modifier.height(18.dp))
 
-        // 7 Live Metric Cards from Firestore
+        // Live Firestore Analytics Header
+        Text(
+            text = "Firestore Live Real-Time Analytics",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // 9 Live Metric Cards from Firestore
         when (val state = statsState) {
             is UiState.Loading -> {
                 Box(modifier = Modifier.fillMaxWidth().height(100.dp), contentAlignment = Alignment.Center) {
@@ -109,13 +117,23 @@ fun DashboardScreen(
             is UiState.Success -> {
                 val stats = state.data
 
+                // Row 1: Total Patients & Live Registered Cases
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    MetricCard("Total Patients", stats.totalPatients.toString(), "Live Registered Cases", Icons.Default.People, PrimaryLightBlue, Modifier.weight(1f))
-                    MetricCard("Total Predictions", stats.totalPredictions.toString(), "AI Inference Runs", Icons.Default.Analytics, SecondaryTealLight, Modifier.weight(1f))
+                    MetricCard("Total Patients", stats.totalPatients.toString(), "Live Firestore Records", Icons.Default.People, PrimaryLightBlue, Modifier.weight(1f))
+                    MetricCard("Live Registered", stats.totalPatients.toString(), "Active Patient Cases", Icons.Default.HowToReg, SecondaryTealLight, Modifier.weight(1f))
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
+                // Row 2: Total Predictions & AI Inference Runs
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    MetricCard("Total Predictions", stats.totalPredictions.toString(), "AI Inference Output", Icons.Default.Analytics, SecondaryTealLight, Modifier.weight(1f))
+                    MetricCard("AI Inference Runs", stats.totalPredictions.toString(), "XGBoost & Neural Model", Icons.Default.AutoAwesome, PrimaryLightBlue, Modifier.weight(1f))
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Row 3: Successful Cases & Uploaded X-Rays
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     MetricCard("Successful Cases", stats.successfulCases.toString(), "> 85% Success Rate", Icons.Default.CheckCircle, AccentSuccess, Modifier.weight(1f))
                     MetricCard("Uploaded X-Rays", stats.totalXRaysUploaded.toString(), "Lateral Cephalograms", Icons.Default.PhotoLibrary, AccentWarning, Modifier.weight(1f))
@@ -123,10 +141,11 @@ fun DashboardScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
+                // Row 4: Moderate Risk, High Risk Cases & Reports Generated
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    MetricCard("Moderate Risk", stats.moderateRiskCases.toString(), "70–85% Success Rate", Icons.Default.Warning, AccentWarning, Modifier.weight(1f))
-                    MetricCard("High Risk Cases", stats.highRiskCases.toString(), "< 70% Success Rate", Icons.Default.Error, AccentError, Modifier.weight(1f))
-                    MetricCard("Total Reports", stats.totalReports.toString(), "Clinical PDFs Generated", Icons.Default.PictureAsPdf, PrimaryLightBlue, Modifier.weight(1f))
+                    MetricCard("Moderate Risk", stats.moderateRiskCases.toString(), "70–85% Success", Icons.Default.Warning, AccentWarning, Modifier.weight(1f))
+                    MetricCard("High Risk Cases", stats.highRiskCases.toString(), "< 70% Success", Icons.Default.Error, AccentError, Modifier.weight(1f))
+                    MetricCard("Reports Generated", stats.totalReports.toString(), "Clinical PDFs", Icons.Default.PictureAsPdf, PrimaryLightBlue, Modifier.weight(1f))
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
