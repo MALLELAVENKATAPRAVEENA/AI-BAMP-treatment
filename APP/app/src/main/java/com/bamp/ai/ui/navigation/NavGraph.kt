@@ -543,6 +543,7 @@ fun NavHostContent(
             val patientId = backStackEntry.arguments?.getString("patientId")
             XRayUploadScreen(
                 aiViewModel = aiViewModel,
+                patientViewModel = patientViewModel,
                 patientId = patientId,
                 onNavigateToLandmarks = { navController.navigate(Screen.LandmarkDetection.createRoute(patientId)) },
                 onNavigateBack = { navController.popBackStack() }

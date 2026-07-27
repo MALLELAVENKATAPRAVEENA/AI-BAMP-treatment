@@ -176,20 +176,58 @@ class PatientRepository {
 
     suspend fun savePatientToFirestore(req: AddPatientRequest): Boolean {
         return try {
-            val id = "PAT-${System.currentTimeMillis()}"
+            val pId = req.patientId.takeIf { !it.isNullOrEmpty() } ?: "PAT-${System.currentTimeMillis()}"
+            val currentUserEmail = FirebaseAuth.getInstance().currentUser?.email ?: "Orthodontist"
             val map = mapOf(
-                "patientId" to id,
+                "patientId" to pId,
                 "patientName" to req.name,
                 "name" to req.name,
                 "age" to req.age,
                 "gender" to req.gender,
+                "dateOfBirth" to (req.dateOfBirth ?: ""),
+                "growthStatus" to (req.growthStatus ?: "Active Peak Growth"),
                 "cvmStage" to (req.cvmStage ?: "CVM 3"),
+                "skeletalAge" to (req.skeletalAge ?: "${req.age} yrs"),
+                "chronologicalAge" to (req.chronologicalAge ?: "${req.age} yrs"),
+                "clinicalNotes" to (req.clinicalNotes ?: ""),
                 "status" to "Active",
                 "diagnosis" to (req.diagnosis ?: "Class III Skeletal Malocclusion"),
                 "bampStartDate" to (req.bampStartDate ?: ""),
+                "createdAt" to System.currentTimeMillis().toString(),
+                "createdBy" to currentUserEmail
+            )
+            firestore.collection("patients").document(pId).set(map)
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    suspend fun saveXRayMetadataToFirestore(
+        patientId: String,
+        patientName: String,
+        imageUrl: String,
+        imageName: String,
+        fileSize: Long,
+        validationStatus: String,
+        confidenceScore: Float
+    ): Boolean {
+        return try {
+            val docId = "XRAY-${System.currentTimeMillis()}"
+            val map = mapOf(
+                "xrayId" to docId,
+                "patientId" to patientId,
+                "patientName" to patientName,
+                "imageUrl" to imageUrl,
+                "imageName" to imageName,
+                "uploadDate" to System.currentTimeMillis().toString(),
+                "fileSize" to fileSize,
+                "validationStatus" to validationStatus,
+                "confidenceScore" to confidenceScore,
                 "createdAt" to System.currentTimeMillis().toString()
             )
-            firestore.collection("patients").document(id).set(map)
+            firestore.collection("patient_xrays").document(docId).set(map)
+            firestore.collection("xrays").document(docId).set(map)
             true
         } catch (e: Exception) {
             false
@@ -200,6 +238,34 @@ class PatientRepository {
 class AIRepository {
     private val api = RetrofitClient.apiService
     private val firestore = FirebaseFirestore.getInstance()
+
+    fun saveXRayMetadataToFirestore(
+        patientId: String,
+        patientName: String,
+        imageUrl: String,
+        imageName: String,
+        fileSize: Long,
+        validationStatus: String,
+        confidenceScore: Float
+    ) {
+        try {
+            val docId = "XRAY-${System.currentTimeMillis()}"
+            val map = mapOf(
+                "xrayId" to docId,
+                "patientId" to patientId,
+                "patientName" to patientName,
+                "imageUrl" to imageUrl,
+                "imageName" to imageName,
+                "uploadDate" to System.currentTimeMillis().toString(),
+                "fileSize" to fileSize,
+                "validationStatus" to validationStatus,
+                "confidenceScore" to confidenceScore,
+                "createdAt" to System.currentTimeMillis().toString()
+            )
+            firestore.collection("patient_xrays").document(docId).set(map)
+            firestore.collection("xrays").document(docId).set(map)
+        } catch (_: Exception) {}
+    }
 
     suspend fun uploadXray(file: File, patientId: String): retrofit2.Response<ApiResponse<XRayUploadData>> {
         val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())

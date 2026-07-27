@@ -74,12 +74,18 @@ data class Patient(
     val name: String,
     val age: Int,
     val gender: String,
-    val contactNumber: String? = null,
+    val dateOfBirth: String? = null,
+    val growthStatus: String? = "Active Peak Growth",
     val cvmStage: String? = "CVM 3",
+    val skeletalAge: String? = null,
+    val chronologicalAge: String? = null,
+    val clinicalNotes: String? = null,
+    val contactNumber: String? = null,
     val status: String? = "Active",
     val diagnosis: String? = "Class III Skeletal Malocclusion",
     val bampStartDate: String? = null,
     val createdAt: String? = null,
+    val createdBy: String? = null,
     val history: List<PatientHistoryItem>? = null
 )
 
@@ -90,12 +96,18 @@ data class PatientHistoryItem(
 )
 
 data class AddPatientRequest(
+    val patientId: String? = null,
     @SerializedName("patientName", alternate = ["name"])
     val name: String,
     val age: Int,
     val gender: String,
-    val contactNumber: String? = null,
+    val dateOfBirth: String? = null,
+    val growthStatus: String? = "Active Peak Growth",
     val cvmStage: String? = "CVM 3",
+    val skeletalAge: String? = null,
+    val chronologicalAge: String? = null,
+    val clinicalNotes: String? = null,
+    val contactNumber: String? = null,
     val diagnosis: String? = "Class III Skeletal Malocclusion",
     val bampStartDate: String? = null
 )
@@ -104,8 +116,13 @@ data class UpdatePatientRequest(
     val name: String? = null,
     val age: Int? = null,
     val gender: String? = null,
-    val contactNumber: String? = null,
+    val dateOfBirth: String? = null,
+    val growthStatus: String? = null,
     val cvmStage: String? = null,
+    val skeletalAge: String? = null,
+    val chronologicalAge: String? = null,
+    val clinicalNotes: String? = null,
+    val contactNumber: String? = null,
     val status: String? = null,
     val diagnosis: String? = null,
     val bampStartDate: String? = null
@@ -124,10 +141,14 @@ data class DashboardStats(
 )
 
 data class XRayUploadData(
-    val xrayId: String?,
-    val imageUrl: String?,
-    val patientId: String?,
-    val validationStatus: String? = "Accepted",
+    val xrayId: String? = null,
+    val imageUrl: String? = null,
+    val imageName: String? = null,
+    val patientId: String? = null,
+    val patientName: String? = null,
+    val uploadDate: String? = null,
+    val fileSize: Long? = null,
+    val validationStatus: String? = "VALID",
     val confidenceScore: Float? = 95.0f,
     val rejectionReason: String? = null,
     val validatedByAI: Boolean? = true
