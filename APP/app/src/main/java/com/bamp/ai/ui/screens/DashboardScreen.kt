@@ -73,17 +73,6 @@ fun DashboardScreen(
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Button(
-                onClick = onNavigateToXRayUpload,
-                modifier = Modifier.weight(1f).height(46.dp),
-                shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = PrimarySapphire)
-            ) {
-                Icon(Icons.Default.UploadFile, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(6.dp))
-                Text("Upload X-Ray", fontSize = 13.sp, fontWeight = FontWeight.Bold)
-            }
-
-            Button(
                 onClick = onNavigateToDirectory,
                 modifier = Modifier.weight(1f).height(46.dp),
                 shape = RoundedCornerShape(10.dp),
@@ -92,6 +81,17 @@ fun DashboardScreen(
                 Icon(Icons.Default.People, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(6.dp))
                 Text("Patient Directory", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            }
+
+            Button(
+                onClick = onNavigateToAIChat,
+                modifier = Modifier.weight(1f).height(46.dp),
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = PrimarySapphire)
+            ) {
+                Icon(Icons.Default.SmartToy, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("AI Assistant", fontSize = 13.sp, fontWeight = FontWeight.Bold)
             }
         }
 

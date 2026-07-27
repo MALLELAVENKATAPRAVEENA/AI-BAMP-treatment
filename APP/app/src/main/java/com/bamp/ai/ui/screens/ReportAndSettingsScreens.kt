@@ -5,8 +5,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
@@ -19,6 +21,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bamp.ai.data.config.AppConfig
+import com.bamp.ai.data.model.User
+import com.bamp.ai.data.model.UserProfileUpdateRequest
+import com.bamp.ai.data.repository.AuthRepository
 import com.bamp.ai.ui.theme.*
 import com.bamp.ai.viewmodel.AuthViewModel
 import com.bamp.ai.viewmodel.ReportViewModel
@@ -253,105 +258,255 @@ fun ProfileScreen(
     onNavigateBack: () -> Unit
 ) {
     val user = authViewModel.currentUser
+    var showEditDialog by remember { mutableStateOf(false) }
+    var isNightMode by remember { mutableStateOf(true) }
+    val scrollState = rememberScrollState()
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(BackgroundDark)
-            .padding(16.dp),
-        contentAlignment = Alignment.Center
+            .padding(16.dp)
+            .verticalScroll(scrollState)
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onNavigateBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onNavigateBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Practitioner Profile & Theme Settings",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Profile Details Card
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(1.dp, CardBorderColor, RoundedCornerShape(16.dp)),
+            colors = CardDefaults.cardColors(containerColor = CardBackground),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Surface(
+                    shape = CircleShape,
+                    color = PrimarySapphire.copy(alpha = 0.2f),
+                    modifier = Modifier.size(72.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(Icons.Default.Person, contentDescription = null, tint = PrimaryLightBlue, modifier = Modifier.size(40.dp))
+                    }
                 }
-                Spacer(modifier = Modifier.width(8.dp))
+
+                Spacer(modifier = Modifier.height(14.dp))
+
                 Text(
-                    text = "Practitioner Profile Settings",
-                    fontSize = 20.sp,
+                    text = user?.name ?: "Dr. Orthodontic Practitioner",
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
-            }
 
-            Spacer(modifier = Modifier.height(20.dp))
+                Text(
+                    text = user?.email ?: "doctor@orthocenter.org",
+                    fontSize = 14.sp,
+                    color = TextSecondary
+                )
 
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, CardBorderColor, RoundedCornerShape(16.dp)),
-                colors = CardDefaults.cardColors(containerColor = CardBackground),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = SecondaryTeal.copy(alpha = 0.15f)
                 ) {
-                    Surface(
-                        shape = CircleShape,
-                        color = PrimarySapphire.copy(alpha = 0.2f),
-                        modifier = Modifier.size(72.dp)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(Icons.Default.Person, contentDescription = null, tint = PrimaryLightBlue, modifier = Modifier.size(40.dp))
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
                     Text(
-                        text = user?.name ?: "Dr. Orthodontic Practitioner",
-                        fontSize = 18.sp,
+                        text = "Role: ${user?.role ?: AppConfig.USER_ROLE_ORTHODONTIST}",
+                        color = SecondaryTealLight,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        fontSize = 13.sp,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                     )
+                }
 
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Hospital / Clinic: ${user?.hospitalName ?: "Orthodontic Medical Center"}",
+                    color = TextSecondary,
+                    fontSize = 13.sp
+                )
+
+                if (!user?.mobileNumber.isNullOrEmpty()) {
                     Text(
-                        text = user?.email ?: "doctor@orthocenter.org",
-                        fontSize = 14.sp,
-                        color = TextSecondary
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = SecondaryTeal.copy(alpha = 0.15f)
-                    ) {
-                        Text(
-                            text = "Role: ${user?.role ?: AppConfig.USER_ROLE_ORTHODONTIST}",
-                            color = SecondaryTealLight,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "Hospital / Clinic: ${user?.hospitalName ?: "St. Jude Orthodontic Center"}",
+                        text = "Mobile: ${user?.mobileNumber}",
                         color = TextSecondary,
                         fontSize = 13.sp
                     )
+                }
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
-                    Button(
-                        onClick = {
-                            authViewModel.logout()
-                            onLogout()
-                        },
-                        modifier = Modifier.fillMaxWidth().height(48.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentError)
-                    ) {
-                        Text("Sign Out of Clinical Portal", fontWeight = FontWeight.Bold)
-                    }
+                // Edit Profile Button
+                Button(
+                    onClick = { showEditDialog = true },
+                    modifier = Modifier.fillMaxWidth().height(46.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimarySapphire)
+                ) {
+                    Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Edit Profile Information", fontWeight = FontWeight.Bold)
                 }
             }
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Night Mode & Bright Mode Toggle Card
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(1.dp, CardBorderColor, RoundedCornerShape(16.dp)),
+            colors = CardDefaults.cardColors(containerColor = CardBackground),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Column(modifier = Modifier.padding(20.dp)) {
+                Text(
+                    text = "App Theme & Visual Mode",
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    fontSize = 16.sp
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Toggle between Night Mode (Dark) and Bright Mode (Light)",
+                    fontSize = 12.sp,
+                    color = TextSecondary
+                )
+                Spacer(modifier = Modifier.height(14.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = if (isNightMode) Icons.Default.NightsStay else Icons.Default.WbSunny,
+                            contentDescription = null,
+                            tint = if (isNightMode) PrimaryLightBlue else Color(0xFFFFB300),
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = if (isNightMode) "Night Mode (Dark Theme)" else "Bright Mode (Light Theme)",
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            fontSize = 14.sp
+                        )
+                    }
+
+                    Switch(
+                        checked = isNightMode,
+                        onCheckedChange = { isNightMode = it },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = PrimarySapphire,
+                            uncheckedThumbColor = Color.White,
+                            uncheckedTrackColor = SecondaryTeal
+                        )
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // Sign Out Button
+        Button(
+            onClick = {
+                authViewModel.logout()
+                onLogout()
+            },
+            modifier = Modifier.fillMaxWidth().height(48.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = AccentError)
+        ) {
+            Icon(Icons.Default.Logout, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(6.dp))
+            Text("Sign Out of Clinical Portal", fontWeight = FontWeight.Bold)
+        }
+    }
+
+    // Edit Profile Dialog
+    if (showEditDialog) {
+        var nameEdit by remember { mutableStateOf(user?.name ?: "") }
+        var hospitalEdit by remember { mutableStateOf(user?.hospitalName ?: "") }
+        var mobileEdit by remember { mutableStateOf(user?.mobileNumber ?: "") }
+
+        AlertDialog(
+            onDismissRequest = { showEditDialog = false },
+            title = { Text("Edit Practitioner Profile", color = Color.White, fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    OutlinedTextField(
+                        value = nameEdit,
+                        onValueChange = { nameEdit = it },
+                        label = { Text("Full Name") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = hospitalEdit,
+                        onValueChange = { hospitalEdit = it },
+                        label = { Text("Hospital / Clinic Name") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = mobileEdit,
+                        onValueChange = { mobileEdit = it },
+                        label = { Text("Mobile Number") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val updatedUser = User(
+                            uid = user?.uid ?: "user_01",
+                            email = user?.email ?: "doctor@orthocenter.org",
+                            name = nameEdit,
+                            role = user?.role ?: "Orthodontist",
+                            hospitalName = hospitalEdit,
+                            mobileNumber = mobileEdit
+                        )
+                        AuthRepository().syncUserToFirestore(updatedUser)
+                        userViewModel.updateProfile(nameEdit, hospitalEdit, mobileEdit)
+                        showEditDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimarySapphire)
+                ) {
+                    Text("Save Changes", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEditDialog = false }) {
+                    Text("Cancel", color = TextSecondary)
+                }
+            },
+            containerColor = CardBackground
+        )
     }
 }
 
