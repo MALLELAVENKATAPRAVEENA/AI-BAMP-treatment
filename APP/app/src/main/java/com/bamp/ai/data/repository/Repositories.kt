@@ -197,10 +197,27 @@ class PatientRepository {
                 "createdBy" to currentUserEmail
             )
             firestore.collection("patients").document(pId).set(map)
+            logAuditEntry("PATIENT_REGISTERED", pId, "Registered patient ${req.name} (Age: ${req.age}, CVM: ${req.cvmStage})")
             true
         } catch (e: Exception) {
             false
         }
+    }
+
+    private fun logAuditEntry(action: String, patientId: String?, details: String) {
+        try {
+            val logId = "log-${System.currentTimeMillis()}-${(100..999).random()}"
+            val currentUserEmail = FirebaseAuth.getInstance().currentUser?.email ?: "Orthodontist"
+            val logMap = mapOf(
+                "logId" to logId,
+                "action" to action,
+                "patientId" to (patientId ?: ""),
+                "performedBy" to currentUserEmail,
+                "details" to details,
+                "timestamp" to System.currentTimeMillis().toString()
+            )
+            firestore.collection("auditLogs").document(logId).set(logMap)
+        } catch (_: Exception) {}
     }
 
     suspend fun saveXRayMetadataToFirestore(
