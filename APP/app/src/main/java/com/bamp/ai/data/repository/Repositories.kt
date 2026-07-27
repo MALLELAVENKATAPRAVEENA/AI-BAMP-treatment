@@ -2,6 +2,7 @@ package com.bamp.ai.data.repository
 
 import com.bamp.ai.data.model.*
 import com.bamp.ai.data.remote.RetrofitClient
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.channels.awaitClose
@@ -60,7 +61,7 @@ class PatientRepository {
             listenerRegistration = firestore.collection("patients")
                 .addSnapshotListener { snapshot, error ->
                     if (error != null) {
-                        close(error)
+                        trySend(emptyList())
                         return@addSnapshotListener
                     }
                     if (snapshot != null) {
@@ -88,7 +89,7 @@ class PatientRepository {
                     }
                 }
         } catch (e: Exception) {
-            close(e)
+            trySend(emptyList())
         }
         awaitClose { listenerRegistration?.remove() }
     }
@@ -122,8 +123,8 @@ class PatientRepository {
             )
         }
 
-        pListener = firestore.collection("patients").addSnapshotListener { snap, _ ->
-            if (snap != null) {
+        pListener = firestore.collection("patients").addSnapshotListener { snap, err ->
+            if (err == null && snap != null) {
                 currentPatients = snap.documents.mapNotNull { doc ->
                     val id = doc.getString("patientId") ?: doc.id
                     val pName = doc.getString("patientName") ?: doc.getString("name") ?: "Patient Record"
@@ -135,8 +136,8 @@ class PatientRepository {
             }
         }
 
-        predListener = firestore.collection("predictions").addSnapshotListener { snap, _ ->
-            if (snap != null) {
+        predListener = firestore.collection("predictions").addSnapshotListener { snap, err ->
+            if (err == null && snap != null) {
                 totalPreds = snap.size()
                 successful = 0
                 moderate = 0
@@ -151,15 +152,15 @@ class PatientRepository {
             }
         }
 
-        rListener = firestore.collection("reports").addSnapshotListener { snap, _ ->
-            if (snap != null) {
+        rListener = firestore.collection("reports").addSnapshotListener { snap, err ->
+            if (err == null && snap != null) {
                 totalReports = snap.size()
                 pushStats()
             }
         }
 
-        xListener = firestore.collection("xrays").addSnapshotListener { snap, _ ->
-            if (snap != null) {
+        xListener = firestore.collection("xrays").addSnapshotListener { snap, err ->
+            if (err == null && snap != null) {
                 totalXRays = snap.size()
                 pushStats()
             }
@@ -258,8 +259,8 @@ class AIRepository {
 
     fun getChatRealtimeFlow(): Flow<List<Pair<String, String>>> = callbackFlow {
         val listener = firestore.collection("chats")
-            .addSnapshotListener { snap, _ ->
-                if (snap != null) {
+            .addSnapshotListener { snap, err ->
+                if (err == null && snap != null) {
                     val messages = snap.documents.mapNotNull { doc ->
                         val uMsg = doc.getString("userMessage")
                         val aReply = doc.getString("aiReply")
@@ -303,8 +304,8 @@ class ReportRepository {
 
     fun getReportsRealtimeFlow(): Flow<List<ReportData>> = callbackFlow {
         val listener = firestore.collection("reports")
-            .addSnapshotListener { snap, _ ->
-                if (snap != null) {
+            .addSnapshotListener { snap, err ->
+                if (err == null && snap != null) {
                     val reports = snap.documents.mapNotNull { doc ->
                         val rId = doc.getString("reportId") ?: doc.id
                         val pName = doc.getString("patientName") ?: "Patient Report"
@@ -332,7 +333,7 @@ class UserRepository {
         val listener = firestore.collection("users").document(normalized)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    close(error)
+                    trySend(null)
                     return@addSnapshotListener
                 }
                 if (snapshot != null && snapshot.exists()) {
