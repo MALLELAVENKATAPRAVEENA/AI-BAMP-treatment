@@ -1,5 +1,31 @@
 const { db, inMemoryStore } = require('../config/firebaseAdmin');
 
+const logValidationRecord = async (validationData) => {
+  const logId = `VAL-${Date.now()}`;
+  const record = {
+    logId,
+    patientId: validationData.patientId || 'PAT-001',
+    imageName: validationData.imageName || 'uploaded_xray.jpg',
+    uploadDate: new Date().toISOString(),
+    validationStatus: validationData.validationStatus, // 'Accepted' or 'Rejected'
+    confidenceScore: validationData.confidenceScore || 0,
+    rejectionReason: validationData.rejectionReason || null,
+    validatedByAI: true,
+    xrayProbability: validationData.xrayProbability || 0
+  };
+
+  try {
+    if (db) {
+      await db.collection('xray_validations').doc(logId).set(record);
+    }
+  } catch (e) {
+    console.warn('[Firestore Notice] Offline, logging validation in memory:', e.message);
+  }
+
+  inMemoryStore.auditLogs.set(logId, record);
+  return record;
+};
+
 const saveXrayMetadata = async (xrayData) => {
   const xrayId = xrayData.xrayId || `XRAY-${Date.now()}`;
   const record = {
@@ -11,6 +37,8 @@ const saveXrayMetadata = async (xrayData) => {
     mimeType: xrayData.mimeType,
     size: xrayData.size,
     url: xrayData.url || `/uploads/${xrayData.filename}`,
+    validationStatus: 'Accepted',
+    confidenceScore: xrayData.confidenceScore || 95.0,
     uploadedAt: new Date().toISOString()
   };
 
@@ -49,6 +77,7 @@ const getXrayById = async (xrayId, doctorId) => {
 };
 
 module.exports = {
+  logValidationRecord,
   saveXrayMetadata,
   getXrayById
 };

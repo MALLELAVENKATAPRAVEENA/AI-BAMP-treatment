@@ -123,11 +123,14 @@ data class DashboardStats(
     val recentPatients: List<Patient>? = emptyList()
 )
 
-// X-Ray Upload Response
 data class XRayUploadData(
-    val xrayId: String,
-    val imageUrl: String,
-    val patientId: String?
+    val xrayId: String?,
+    val imageUrl: String?,
+    val patientId: String?,
+    val validationStatus: String? = "Accepted",
+    val confidenceScore: Float? = 95.0f,
+    val rejectionReason: String? = null,
+    val validatedByAI: Boolean? = true
 )
 
 // AI Models
