@@ -27,6 +27,7 @@ const initializeFirebaseAdmin = () => {
   }
 
   const serviceAccountFilePaths = [
+    path.join(__dirname, 'serviceAccountKey.json'),
     path.join(__dirname, 'firebase-service-account.json'),
     path.join(__dirname, '../firebase/serviceAccountKey.json'),
     path.join(__dirname, '../../firebase/serviceAccountKey.json')
