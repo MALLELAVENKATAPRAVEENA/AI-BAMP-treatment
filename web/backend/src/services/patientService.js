@@ -10,8 +10,8 @@ const validateAge = (age) => {
 
 const getAllPatients = async (doctorId) => {
   try {
-    if (db && doctorId) {
-      const snapshot = await db.collection('patients').where('doctorId', '==', doctorId).get();
+    if (db) {
+      const snapshot = await db.collection('patients').get();
       if (!snapshot.empty) {
         return snapshot.docs.map(doc => doc.data());
       }

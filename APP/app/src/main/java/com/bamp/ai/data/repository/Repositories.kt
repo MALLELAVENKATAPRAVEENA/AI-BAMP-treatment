@@ -8,6 +8,7 @@ import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.tasks.await
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -196,7 +197,7 @@ class PatientRepository {
                 "createdAt" to System.currentTimeMillis().toString(),
                 "createdBy" to currentUserEmail
             )
-            firestore.collection("patients").document(pId).set(map)
+            firestore.collection("patients").document(pId).set(map).await()
             logAuditEntry("PATIENT_REGISTERED", pId, "Registered patient ${req.name} (Age: ${req.age}, CVM: ${req.cvmStage})")
             true
         } catch (e: Exception) {
