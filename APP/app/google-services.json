@@ -2,9 +2,38 @@
   "project_info": {
     "project_number": "824105088863",
     "project_id": "bamp-1de96",
-    "storage_bucket": "bamp-1de96.appspot.com"
+    "storage_bucket": "bamp-1de96.firebasestorage.app"
   },
   "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:824105088863:android:bb08dfb8218f22e7a8a8ea",
+        "android_client_info": {
+          "package_name": "com.aibamp.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "824105088863-c1vgfou1ssc88gk775offnbemhc905hr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB5Gtum9UGrXge7k_L5T7KhPOuRg4fddgE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "824105088863-c1vgfou1ssc88gk775offnbemhc905hr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
     {
       "client_info": {
         "mobilesdk_app_id": "1:824105088863:android:c9c542beec73897aa8a8ea",
@@ -12,15 +41,25 @@
           "package_name": "com.bamp.ai"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "824105088863-c1vgfou1ssc88gk775offnbemhc905hr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyCfKQNXwdARp9qJAz1IOi1k8VEmN3iiiFk"
+          "current_key": "AIzaSyB5Gtum9UGrXge7k_L5T7KhPOuRg4fddgE"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "824105088863-c1vgfou1ssc88gk775offnbemhc905hr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
