@@ -366,33 +366,7 @@ fun RegisterPatientScreen(
 
                 Spacer(modifier = Modifier.height(18.dp))
 
-                // Upload Action Buttons
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    OutlinedButton(
-                        onClick = { /* Upload Photo */ },
-                        modifier = Modifier.weight(1f).height(44.dp),
-                        shape = RoundedCornerShape(10.dp)
-                    ) {
-                        Icon(Icons.Default.AddAPhoto, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Upload Photo", fontSize = 12.sp)
-                    }
 
-                    OutlinedButton(
-                        onClick = { /* Upload X-Ray */ },
-                        modifier = Modifier.weight(1f).height(44.dp),
-                        shape = RoundedCornerShape(10.dp)
-                    ) {
-                        Icon(Icons.Default.UploadFile, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Upload X-Ray", fontSize = 12.sp)
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
 
                 Button(
                     onClick = {
