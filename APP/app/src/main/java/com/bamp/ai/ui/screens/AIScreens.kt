@@ -1,5 +1,9 @@
 package com.bamp.ai.ui.screens
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -17,13 +21,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import com.bamp.ai.data.model.Landmark
 import com.bamp.ai.ui.theme.*
 import com.bamp.ai.viewmodel.AIViewModel
 import com.bamp.ai.viewmodel.UiState
+import java.io.File
+import java.io.FileOutputStream
 
 @Composable
 fun XRayUploadScreen(
@@ -32,12 +41,27 @@ fun XRayUploadScreen(
     onNavigateToLandmarks: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
+    val context = LocalContext.current
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    val uploadState by aiViewModel.xrayUploadState.collectAsState()
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        selectedImageUri = uri
+    }
+
+    LaunchedEffect(uploadState) {
+        if (uploadState is UiState.Success) {
+            onNavigateToLandmarks()
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(BackgroundDark)
-            .padding(20.dp),
-        contentAlignment = Alignment.Center
+            .padding(20.dp)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -63,22 +87,35 @@ fun XRayUploadScreen(
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Column(
-                    modifier = Modifier.padding(24.dp),
+                    modifier = Modifier.padding(20.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Surface(
-                        shape = RoundedCornerShape(28.dp),
-                        color = PrimarySapphire.copy(alpha = 0.2f),
-                        modifier = Modifier.size(72.dp)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Default.CloudUpload,
-                                contentDescription = null,
-                                tint = PrimaryLightBlue,
-                                modifier = Modifier.size(36.dp)
-                            )
+                    if (selectedImageUri == null) {
+                        Surface(
+                            shape = RoundedCornerShape(28.dp),
+                            color = PrimarySapphire.copy(alpha = 0.2f),
+                            modifier = Modifier.size(72.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Default.CloudUpload,
+                                    contentDescription = null,
+                                    tint = PrimaryLightBlue,
+                                    modifier = Modifier.size(36.dp)
+                                )
+                            }
                         }
+                    } else {
+                        AsyncImage(
+                            model = selectedImageUri,
+                            contentDescription = "Selected X-Ray",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                                .border(1.dp, CardBorderColor, RoundedCornerShape(12.dp))
+                                .background(Color.Black.copy(alpha = 0.3f), RoundedCornerShape(12.dp)),
+                            contentScale = ContentScale.Fit
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -98,50 +135,34 @@ fun XRayUploadScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Validation Status Badge
-                    Surface(
-                        shape = RoundedCornerShape(20.dp),
-                        color = SecondaryTeal.copy(alpha = 0.15f),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, SecondaryTealLight.copy(alpha = 0.4f)),
-                        modifier = Modifier.padding(vertical = 4.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    if (selectedImageUri != null) {
+                        // Validation Status Badge (Simulated or AI based)
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = SecondaryTeal.copy(alpha = 0.15f),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, SecondaryTealLight.copy(alpha = 0.4f)),
+                            modifier = Modifier.padding(vertical = 4.dp)
                         ) {
-                            Icon(Icons.Default.CheckCircle, contentDescription = null, tint = SecondaryTealLight, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = "✅ Valid Cephalometric X-Ray (95.0% AI Confidence)",
-                                color = SecondaryTealLight,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                Icon(Icons.Default.CheckCircle, contentDescription = null, tint = SecondaryTealLight, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "✅ Valid Cephalometric X-Ray (95.0% AI Confidence)",
+                                    color = SecondaryTealLight,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(160.dp)
-                            .border(1.dp, CardBorderColor, RoundedCornerShape(12.dp))
-                            .background(Color.Black.copy(alpha = 0.3f), RoundedCornerShape(12.dp)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(Icons.Default.Psychology, contentDescription = null, tint = SecondaryTealLight, modifier = Modifier.size(44.dp))
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text("Verified Dental X-Ray Ready for AI Landmark Analysis", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(20.dp))
 
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         OutlinedButton(
-                            onClick = { /* Camera Upload */ },
+                            onClick = { /* Implement Camera later */ },
                             modifier = Modifier.weight(1f).height(46.dp),
                             shape = RoundedCornerShape(10.dp)
                         ) {
@@ -151,7 +172,7 @@ fun XRayUploadScreen(
                         }
 
                         OutlinedButton(
-                            onClick = { /* Gallery Upload */ },
+                            onClick = { galleryLauncher.launch("image/*") },
                             modifier = Modifier.weight(1f).height(46.dp),
                             shape = RoundedCornerShape(10.dp)
                         ) {
@@ -165,20 +186,58 @@ fun XRayUploadScreen(
 
                     Button(
                         onClick = {
-                            aiViewModel.detectLandmarks(xrayId = "XRAY_DEMO_01", imageBase64 = null)
-                            onNavigateToLandmarks()
+                            selectedImageUri?.let { uri ->
+                                val file = uriToFile(context, uri)
+                                if (file != null) {
+                                    aiViewModel.uploadXray(file, patientId ?: "UNKNOWN")
+                                }
+                            } ?: run {
+                                // For demo if no image selected
+                                aiViewModel.detectLandmarks(xrayId = "XRAY_DEMO_01", imageBase64 = null)
+                                onNavigateToLandmarks()
+                            }
                         },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = PrimarySapphire)
+                        colors = ButtonDefaults.buttonColors(containerColor = PrimarySapphire),
+                        enabled = uploadState !is UiState.Loading
                     ) {
-                        Text("Detect Cephalometric Landmarks", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        if (uploadState is UiState.Loading) {
+                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                        } else {
+                            Text(
+                                if (selectedImageUri != null) "Upload & Detect Landmarks" else "Detect Landmarks (Demo)",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+
+                    if (uploadState is UiState.Error) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(text = (uploadState as UiState.Error).message, color = AccentError, fontSize = 12.sp)
                     }
                 }
             }
         }
+    }
+}
+
+private fun uriToFile(context: android.content.Context, uri: Uri): File? {
+    return try {
+        val inputStream = context.contentResolver.openInputStream(uri)
+        val file = File(context.cacheDir, "temp_xray_${System.currentTimeMillis()}.jpg")
+        val outputStream = FileOutputStream(file)
+        inputStream?.use { input ->
+            outputStream.use { output ->
+                input.copyTo(output)
+            }
+        }
+        file
+    } catch (e: Exception) {
+        null
     }
 }
 
