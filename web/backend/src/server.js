@@ -28,16 +28,7 @@ app.use(morgan('dev'));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use('/reports', express.static(path.join(__dirname, '../reports')));
 
-// API Routes Mounting
-app.use('/api/auth', authRoutes);
-app.use('/api/patients', patientRoutes);
-app.use('/api/xray', xrayRoutes);
-app.use('/api/ai', aiRoutes);
-app.use('/api/report', reportRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api', userRoutes);
-
-// Health Check Endpoint
+// Health Check Endpoint (Public)
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
@@ -46,6 +37,15 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+// API Routes Mounting
+app.use('/api/auth', authRoutes);
+app.use('/api/patients', patientRoutes);
+app.use('/api/xray', xrayRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/report', reportRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api', userRoutes);
 
 // 404 Route Handler
 app.use('*', (req, res) => {
@@ -56,9 +56,10 @@ app.use('*', (req, res) => {
 app.use(errorHandler);
 
 const PORT = config.port;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`=================================================`);
   console.log(`🚀 AI BAMP Predictor Backend Server active on port ${PORT}`);
+  console.log(`📡 Listening on 0.0.0.0:${PORT} (LAN & Localhost accessible)`);
   console.log(`📡 Environment: ${config.nodeEnv}`);
   console.log(`🤖 AI Microservice URL: ${config.aiServiceUrl}`);
   console.log(`=================================================`);

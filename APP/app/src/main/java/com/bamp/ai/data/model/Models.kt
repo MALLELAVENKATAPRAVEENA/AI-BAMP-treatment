@@ -6,7 +6,9 @@ import com.google.gson.annotations.SerializedName
 data class ApiResponse<T>(
     val success: Boolean,
     val message: String?,
-    val data: T?
+    val data: T?,
+    val token: String?,
+    val user: User?
 )
 
 // Auth Models
@@ -18,8 +20,8 @@ data class LoginRequest(
 data class RegisterRequest(
     val fullName: String,
     val email: String,
-    val mobileNumber: String?,
-    val hospitalName: String?,
+    val mobileNumber: String? = null,
+    val hospitalName: String? = null,
     val role: String = "Orthodontist",
     val password: String,
     val confirmPassword: String
@@ -28,8 +30,8 @@ data class RegisterRequest(
 data class GoogleLoginRequest(
     val uid: String,
     val email: String,
-    val displayName: String?,
-    val photoURL: String?
+    val displayName: String? = null,
+    val photoURL: String? = null
 )
 
 data class ForgotPasswordRequest(
@@ -53,8 +55,10 @@ data class User(
     @SerializedName("fullName", alternate = ["name"])
     val name: String?,
     val role: String?,
-    val photoURL: String?,
-    val hospitalName: String?
+    val photoURL: String? = null,
+    val hospitalName: String? = null,
+    val mobileNumber: String? = null,
+    val createdAt: String? = null
 )
 
 data class AuthResponseData(
@@ -66,27 +70,64 @@ data class AuthResponseData(
 data class Patient(
     val id: String?,
     val patientId: String?,
+    @SerializedName("patientName", alternate = ["name"])
     val name: String,
     val age: Int,
     val gender: String,
-    val contactNumber: String?,
+    val contactNumber: String? = null,
+    val cvmStage: String? = "CVM 3",
     val status: String? = "Active",
-    val createdAt: String?
+    val diagnosis: String? = "Class III Skeletal Malocclusion",
+    val bampStartDate: String? = null,
+    val createdAt: String? = null,
+    val history: List<PatientHistoryItem>? = null
+)
+
+data class PatientHistoryItem(
+    val date: String,
+    val type: String,
+    val description: String
 )
 
 data class AddPatientRequest(
+    @SerializedName("patientName", alternate = ["name"])
     val name: String,
     val age: Int,
     val gender: String,
-    val contactNumber: String?
+    val contactNumber: String? = null,
+    val cvmStage: String? = "CVM 3",
+    val diagnosis: String? = "Class III Skeletal Malocclusion",
+    val bampStartDate: String? = null
+)
+
+data class UpdatePatientRequest(
+    val name: String? = null,
+    val age: Int? = null,
+    val gender: String? = null,
+    val contactNumber: String? = null,
+    val cvmStage: String? = null,
+    val status: String? = null,
+    val diagnosis: String? = null,
+    val bampStartDate: String? = null
 )
 
 // Dashboard Stats Model
 data class DashboardStats(
-    val totalPatients: Int,
-    val totalPredictions: Int,
-    val totalXRaysUploaded: Int,
-    val recentPatients: List<Patient>?
+    val totalPatients: Int = 0,
+    val totalPredictions: Int = 0,
+    val successfulCases: Int = 0,
+    val moderateRiskCases: Int = 0,
+    val highRiskCases: Int = 0,
+    val totalXRaysUploaded: Int = 0,
+    val totalReports: Int = 0,
+    val recentPatients: List<Patient>? = emptyList()
+)
+
+// X-Ray Upload Response
+data class XRayUploadData(
+    val xrayId: String,
+    val imageUrl: String,
+    val patientId: String?
 )
 
 // AI Models
@@ -102,11 +143,26 @@ data class Landmark(
     val y: Float
 )
 
+data class CalculateMeasurementsRequest(
+    val patientId: String,
+    val landmarks: List<Landmark>
+)
+
+data class CephMeasurements(
+    val sna: Float = 82f,
+    val snb: Float = 80f,
+    val anb: Float = 2f,
+    val witts: Float = 0f
+)
+
 data class PredictRequest(
     val patientId: String,
     val age: Int,
     val gender: String,
-    val landmarks: List<Landmark>?
+    val cvmStage: String? = "CVM 3",
+    val growthPotential: String? = "High",
+    val landmarks: List<Landmark>? = null,
+    val measurements: CephMeasurements? = null
 )
 
 data class PredictResponse(
@@ -130,4 +186,32 @@ data class AIChatRequest(
 
 data class AIChatResponse(
     val reply: String
+)
+
+// Reports
+data class GenerateReportRequest(
+    val patientId: String,
+    val predictionId: String? = null
+)
+
+data class ReportData(
+    val reportId: String,
+    val pdfUrl: String,
+    val patientName: String,
+    val generatedAt: String
+)
+
+// Profile & Notifications
+data class UserProfileUpdateRequest(
+    val fullName: String? = null,
+    val hospitalName: String? = null,
+    val mobileNumber: String? = null
+)
+
+data class UserNotification(
+    val id: String,
+    val title: String,
+    val message: String,
+    val timestamp: String,
+    val read: Boolean = false
 )

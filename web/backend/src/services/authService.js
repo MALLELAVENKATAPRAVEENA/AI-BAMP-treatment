@@ -1,5 +1,5 @@
 const bcrypt = require('bcryptjs');
-const { db, inMemoryStore } = require('../config/firebaseAdmin');
+const { db, auth, inMemoryStore } = require('../config/firebaseAdmin');
 const { validatePassword } = require('../utils/passwordValidator');
 const { generateToken } = require('../config/jwt');
 const { sendOTPEmail, sendPasswordResetEmail } = require('./emailService');
@@ -41,6 +41,26 @@ const registerUser = async (userData) => {
   const hashedPassword = await bcrypt.hash(password, salt);
   const uid = `user-${Date.now()}`;
 
+  // 2. Create User in Firebase Authentication Cloud (bamp-1de96)
+  if (auth) {
+    try {
+      await auth.createUser({
+        uid,
+        email: normalizedEmail,
+        password: password,
+        displayName: fullName
+      });
+      console.log(`[Firebase Auth Cloud] User created in Auth SDK: ${normalizedEmail}`);
+    } catch (authErr) {
+      if (authErr.code === 'auth/email-already-exists') {
+        try {
+          const userRec = await auth.getUserByEmail(normalizedEmail);
+          await auth.updateUser(userRec.uid, { password: password });
+        } catch (_) {}
+      }
+    }
+  }
+
   const newUserObj = {
     uid,
     name: fullName,
@@ -58,7 +78,7 @@ const registerUser = async (userData) => {
     lastLoginAt: new Date().toISOString()
   };
 
-  // 2. Save directly into Firebase Firestore 'users' collection
+  // 3. Save directly into Firebase Firestore 'users' collection
   if (db) {
     try {
       await db.collection('users').doc(normalizedEmail).set(newUserObj);
@@ -110,6 +130,25 @@ const loginUser = async (email, password) => {
   const isMatch = await bcrypt.compare(password, userRecord.password);
   if (!isMatch) {
     throw new Error('Invalid Password');
+  }
+
+  // Ensure Firebase Auth Cloud account exists with password
+  if (auth) {
+    try {
+      const userRec = await auth.getUserByEmail(normalizedEmail);
+      await auth.updateUser(userRec.uid, { password: password });
+    } catch (authErr) {
+      if (authErr.code === 'auth/user-not-found') {
+        try {
+          await auth.createUser({
+            uid: userRecord.uid || `user-${Date.now()}`,
+            email: normalizedEmail,
+            password: password,
+            displayName: userRecord.fullName || userRecord.name || 'Orthodontist Practitioner'
+          });
+        } catch (_) {}
+      }
+    }
   }
 
   const lastLogin = new Date().toISOString();
@@ -192,7 +231,6 @@ const googleLogin = async (googleUserData) => {
     }
     inMemoryStore.users.set(normalizedEmail, userRecord);
   } else {
-    // Existing User: Update last login timestamp
     userRecord.lastLogin = now;
     userRecord.lastLoginAt = now;
     if (photoURL) userRecord.photoURL = photoURL;
@@ -247,10 +285,9 @@ const requestPasswordReset = async (email) => {
     throw new Error('User Account Not Found');
   }
 
-  // Generate secure 6-digit OTP
   const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
   const createdAt = new Date().toISOString();
-  const expiresAt = Date.now() + 10 * 60 * 1000; // 10 Minutes validity
+  const expiresAt = Date.now() + 10 * 60 * 1000;
 
   const otpRecord = {
     email: normalizedEmail,
@@ -260,18 +297,13 @@ const requestPasswordReset = async (email) => {
     used: false
   };
 
-  // Save to Firestore 'password_reset_otps' collection
   if (db) {
     try {
       await db.collection('password_reset_otps').doc(normalizedEmail).set(otpRecord);
-      console.log(`[Firestore] Secure OTP saved in 'password_reset_otps' for: ${normalizedEmail}`);
-    } catch (e) {
-      console.warn('[Firestore] OTP save fallback:', e.message);
-    }
+    } catch (e) {}
   }
   otpStore.set(normalizedEmail, otpRecord);
 
-  // Send Email with exact template
   await sendPasswordResetEmail(normalizedEmail, otpCode);
 
   await logAction({
@@ -282,7 +314,6 @@ const requestPasswordReset = async (email) => {
     target: normalizedEmail
   });
 
-  // Do NOT return OTP in response body
   return {
     success: true,
     message: 'Password reset verification code sent to your registered email address.'
@@ -322,20 +353,16 @@ const verifyPasswordResetOtp = async (email, otpCode) => {
 const confirmPasswordReset = async (email, otpCode, newPassword) => {
   const normalizedEmail = email.toLowerCase();
 
-  // 1. Verify OTP validity
   await verifyPasswordResetOtp(normalizedEmail, otpCode);
 
-  // 2. Validate New Password
   const passValidation = validatePassword(newPassword);
   if (!passValidation.isValid) {
     throw new Error(passValidation.message);
   }
 
-  // 3. Hash New Password
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(newPassword, salt);
 
-  // 4. Update user record in Firestore 'users'
   let userRecord = null;
   if (db) {
     try {
@@ -346,14 +373,15 @@ const confirmPasswordReset = async (email, otpCode, newPassword) => {
           password: hashedPassword,
           updatedAt: new Date().toISOString()
         });
-        if (userRecord.uid) {
-          await db.collection('users').doc(userRecord.uid).update({
-            password: hashedPassword,
-            updatedAt: new Date().toISOString()
-          });
-        }
       }
     } catch (e) {}
+  }
+
+  if (auth) {
+    try {
+      const userRec = await auth.getUserByEmail(normalizedEmail);
+      await auth.updateUser(userRec.uid, { password: newPassword });
+    } catch (_) {}
   }
 
   const memUser = inMemoryStore.users.get(normalizedEmail);
@@ -361,31 +389,6 @@ const confirmPasswordReset = async (email, otpCode, newPassword) => {
     memUser.password = hashedPassword;
     inMemoryStore.users.set(normalizedEmail, memUser);
   }
-
-  // 5. Mark OTP as used
-  const usedAt = new Date().toISOString();
-  if (db) {
-    try {
-      await db.collection('password_reset_otps').doc(normalizedEmail).update({
-        used: true,
-        usedAt
-      });
-    } catch (e) {}
-  }
-
-  const memOtp = otpStore.get(normalizedEmail);
-  if (memOtp) {
-    memOtp.used = true;
-    memOtp.usedAt = usedAt;
-  }
-
-  await logAction({
-    userId: userRecord?.uid || 'user',
-    userName: userRecord?.fullName || userRecord?.name || 'User',
-    role: userRecord?.role || 'Orthodontist',
-    action: 'PASSWORD_RESET_COMPLETED',
-    target: normalizedEmail
-  });
 
   return {
     success: true,

@@ -30,8 +30,16 @@ web/backend/uploads/*
 web/backend/reports/*
 !web/backend/reports/.gitkeep
 
+# Gradle & Android Build Caches
+.gradle/
+**/.gradle/
+APP/.gradle/
+.kotlin/
+**/build/
+
 # IDE / OS files
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
+

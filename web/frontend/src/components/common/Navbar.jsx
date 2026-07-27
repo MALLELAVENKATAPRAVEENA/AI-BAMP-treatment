@@ -1,11 +1,11 @@
 import React from 'react';
-import { AppBar, Toolbar, Typography, Button, IconButton, Box, Chip, Avatar } from '@mui/material';
-import { Brightness4, Brightness7, LocalHospital, ExitToApp } from '@mui/icons-material';
+import { AppBar, Toolbar, Typography, Button, IconButton, Box, Chip, Avatar, Tooltip } from '@mui/material';
+import { Brightness4, Brightness7, LocalHospital, ExitToApp, Wifi, WifiOff } from '@mui/icons-material';
 import { useAuth } from '../../hooks/useAuth';
 import { useThemeContext } from '../../context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 
-export const Navbar = () => {
+export const Navbar = ({ isConnected = true, onReconnect }) => {
   const { user, isAuthenticated, logoutUser, role } = useAuth();
   const { mode, toggleTheme } = useThemeContext();
   const navigate = useNavigate();
@@ -26,6 +26,17 @@ export const Navbar = () => {
         </Box>
 
         <Box display="flex" alignItems="center" gap={2}>
+          <Tooltip title={isConnected ? "Backend Server Online" : "Backend Offline - Click to Reconnect"}>
+            <Chip
+              icon={isConnected ? <Wifi sx={{ fontSize: '16px !important' }} /> : <WifiOff sx={{ fontSize: '16px !important' }} />}
+              label={isConnected ? "Server Online" : "Offline / Reconnect"}
+              color={isConnected ? "success" : "warning"}
+              size="small"
+              onClick={onReconnect}
+              sx={{ fontWeight: 700, cursor: 'pointer' }}
+            />
+          </Tooltip>
+
           <IconButton onClick={toggleTheme} color="inherit">
             {mode === 'dark' ? <Brightness7 sx={{ color: '#fbbf24' }} /> : <Brightness4 />}
           </IconButton>

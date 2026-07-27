@@ -1,4 +1,12 @@
 {
+  "name": "ai-bamp-treatment",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "npm --prefix web/frontend run build",
+    "dev:frontend": "npm --prefix web/frontend run dev",
+    "dev:backend": "npm --prefix web/backend run dev",
+    "start:backend": "npm --prefix web/backend run start"
+  },
   "dependencies": {
     "firebase": "^12.16.0",
     "firebase-admin": "^14.2.0"
