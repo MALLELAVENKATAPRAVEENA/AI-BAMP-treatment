@@ -308,7 +308,7 @@ class AIRepository {
         return response
     }
 
-    private fun savePredictionToFirestore(patientId: String, data: PredictResponse) {
+    suspend fun savePredictionToFirestore(patientId: String, data: PredictResponse) {
         try {
             val predMap = mapOf(
                 "predictionId" to data.predictionId,
@@ -318,7 +318,24 @@ class AIRepository {
                 "surgicalProbability" to data.surgicalProbability,
                 "timestamp" to System.currentTimeMillis().toString()
             )
-            firestore.collection("predictions").document(data.predictionId).set(predMap)
+            firestore.collection("predictions").document(data.predictionId).set(predMap).await()
+            logAuditEntry("PREDICTION_GENERATED", patientId, "Generated BAMP outcome prediction: ${data.bampOutcomeClass} (${data.bampFavorableScore})")
+        } catch (_: Exception) {}
+    }
+
+    private fun logAuditEntry(action: String, patientId: String?, details: String) {
+        try {
+            val logId = "log-${System.currentTimeMillis()}-${(100..999).random()}"
+            val currentUserEmail = FirebaseAuth.getInstance().currentUser?.email ?: "Orthodontist"
+            val logMap = mapOf(
+                "logId" to logId,
+                "action" to action,
+                "patientId" to (patientId ?: ""),
+                "performedBy" to currentUserEmail,
+                "details" to details,
+                "timestamp" to System.currentTimeMillis().toString()
+            )
+            firestore.collection("auditLogs").document(logId).set(logMap)
         } catch (_: Exception) {}
     }
 
@@ -373,7 +390,7 @@ class ReportRepository {
         return response
     }
 
-    private fun saveReportToFirestore(patientId: String, data: ReportData) {
+    suspend fun saveReportToFirestore(patientId: String, data: ReportData) {
         try {
             val reportMap = mapOf(
                 "reportId" to data.reportId,
@@ -382,7 +399,7 @@ class ReportRepository {
                 "pdfUrl" to (data.pdfUrl ?: ""),
                 "generatedAt" to data.generatedAt
             )
-            firestore.collection("reports").document(data.reportId).set(reportMap)
+            firestore.collection("reports").document(data.reportId).set(reportMap).await()
         } catch (_: Exception) {}
     }
 
