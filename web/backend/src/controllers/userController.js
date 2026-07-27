@@ -11,8 +11,18 @@ const getUserProfile = async (req, res, next) => {
     let userRecord = null;
     if (db) {
       try {
-        const doc = await db.collection('users').doc(email || uid).get();
-        if (doc.exists) userRecord = doc.data();
+        if (email) {
+          const doc = await db.collection('users').doc(email).get();
+          if (doc.exists) userRecord = doc.data();
+        }
+        if (!userRecord && uid) {
+          const docUid = await db.collection('users').doc(uid).get();
+          if (docUid.exists) userRecord = docUid.data();
+        }
+        if (!userRecord && email) {
+          const snap = await db.collection('users').where('email', '==', email).get();
+          if (!snap.empty) userRecord = snap.docs[0].data();
+        }
       } catch (e) {
         console.warn('[Firestore] getUserProfile error:', e.message);
       }
@@ -47,20 +57,22 @@ const updateUserProfile = async (req, res, next) => {
       updates.fullName = dispName;
       updates.name = dispName;
     }
-    if (mobileNumber) updates.mobileNumber = mobileNumber;
-    if (hospitalName) updates.hospitalName = hospitalName;
-    const photo = avatarUrl || photoURL;
-    if (photo) {
+    if (mobileNumber !== undefined) updates.mobileNumber = mobileNumber;
+    if (hospitalName !== undefined) updates.hospitalName = hospitalName;
+    
+    if (avatarUrl !== undefined || photoURL !== undefined) {
+      const photo = avatarUrl !== undefined ? avatarUrl : photoURL;
       updates.avatarUrl = photo;
       updates.photoURL = photo;
     }
+    
     if (password) {
       updates.password = await bcrypt.hash(password, 10);
     }
 
-    if (db && targetEmail) {
+    if (db) {
       try {
-        await db.collection('users').doc(targetEmail).set(updates, { merge: true });
+        if (targetEmail) await db.collection('users').doc(targetEmail).set(updates, { merge: true });
         if (uid) await db.collection('users').doc(uid).set(updates, { merge: true });
       } catch (e) {
         console.warn('[Firestore] Update profile error:', e.message);
@@ -72,7 +84,7 @@ const updateUserProfile = async (req, res, next) => {
     inMemoryStore.users.set(targetEmail, updatedUser);
 
     const { password: pwd, ...safeUser } = updatedUser;
-    await createAuditLog('USER_PROFILE_UPDATED', uid || 'user', { targetEmail });
+    await createAuditLog('USER_PROFILE_UPDATED', uid || 'user', { targetEmail, hasPhoto: !!updates.avatarUrl });
 
     return sendSuccess(res, 'Practitioner profile updated successfully in Firestore', safeUser);
   } catch (error) {
