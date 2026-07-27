@@ -29,6 +29,7 @@ import com.bamp.ai.viewmodel.UiState
 fun DashboardScreen(
     patientViewModel: PatientViewModel,
     onNavigateToDirectory: () -> Unit,
+    onNavigateToRegisterPatient: () -> Unit,
     onNavigateToXRayUpload: () -> Unit,
     onNavigateToAIChat: () -> Unit
 ) {
@@ -70,9 +71,9 @@ fun DashboardScreen(
 
                     Spacer(modifier = Modifier.width(8.dp))
 
-                    // + New Patient Button matching Web Screenshot 1
+                    // + New Patient Button (Navigates Directly to Register Patient)
                     Button(
-                        onClick = onNavigateToDirectory,
+                        onClick = onNavigateToRegisterPatient,
                         shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = PrimarySapphire),
                         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)

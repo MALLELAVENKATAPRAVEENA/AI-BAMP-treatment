@@ -473,12 +473,48 @@ fun ProfileScreen(
         var nameEdit by remember { mutableStateOf(user?.name ?: "") }
         var hospitalEdit by remember { mutableStateOf(user?.hospitalName ?: "") }
         var mobileEdit by remember { mutableStateOf(user?.mobileNumber ?: "") }
+        var photoUrlEdit by remember { mutableStateOf(user?.photoURL ?: "") }
+
+        val photoLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+            contract = androidx.activity.result.contract.ActivityResultContracts.GetContent()
+        ) { uri: android.net.Uri? ->
+            if (uri != null) {
+                photoUrlEdit = uri.toString()
+            }
+        }
 
         AlertDialog(
             onDismissRequest = { showEditDialog = false },
             title = { Text("Edit Practitioner Profile", color = Color.White, fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    // Profile Photo Option
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Profile Photo", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        OutlinedButton(
+                            onClick = { photoLauncher.launch("image/*") },
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Icon(Icons.Default.PhotoCamera, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Change Photo", fontSize = 12.sp)
+                        }
+                    }
+
+                    if (photoUrlEdit.isNotEmpty()) {
+                        OutlinedTextField(
+                            value = photoUrlEdit,
+                            onValueChange = { photoUrlEdit = it },
+                            label = { Text("Photo URL / Path") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+                    }
+
                     OutlinedTextField(
                         value = nameEdit,
                         onValueChange = { nameEdit = it },
@@ -510,6 +546,7 @@ fun ProfileScreen(
                             email = user?.email ?: "doctor@orthocenter.org",
                             name = nameEdit,
                             role = user?.role ?: "Orthodontist",
+                            photoURL = photoUrlEdit.ifEmpty { null },
                             hospitalName = hospitalEdit,
                             mobileNumber = mobileEdit
                         )

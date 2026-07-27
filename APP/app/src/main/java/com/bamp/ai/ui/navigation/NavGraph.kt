@@ -502,6 +502,7 @@ fun NavHostContent(
             DashboardScreen(
                 patientViewModel = patientViewModel,
                 onNavigateToDirectory = { navController.navigate(Screen.Directory.route) },
+                onNavigateToRegisterPatient = { navController.navigate(Screen.RegisterPatient.route) },
                 onNavigateToXRayUpload = { navController.navigate(Screen.UploadXRay.createRoute()) },
                 onNavigateToAIChat = { navController.navigate(Screen.AIChat.route) }
             )
