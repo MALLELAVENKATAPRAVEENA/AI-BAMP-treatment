@@ -49,7 +49,7 @@ const validateXRayImage = async (filePath, originalName) => {
  */
 const validateXRayBufferNode = (buffer) => {
   const size = buffer.length;
-  if (size < 5000) { # Smaller than 5KB is likely blank or corrupt
+  if (size < 5000) { // Smaller than 5KB is likely blank or corrupt
     return {
       isValid: false,
       confidenceScore: 10.0,
