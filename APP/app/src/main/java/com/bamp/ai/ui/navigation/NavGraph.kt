@@ -512,6 +512,7 @@ fun NavHostContent(
             PatientDirectoryScreen(
                 patientViewModel = patientViewModel,
                 onPatientSelected = { id -> navController.navigate(Screen.PatientDetail.createRoute(id)) },
+                onNavigateToRegister = { navController.navigate(Screen.RegisterPatient.route) },
                 onNavigateBack = { navController.popBackStack() }
             )
         }

@@ -30,11 +30,11 @@ import com.bamp.ai.viewmodel.UiState
 fun PatientDirectoryScreen(
     patientViewModel: PatientViewModel,
     onPatientSelected: (String) -> Unit,
+    onNavigateToRegister: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
     val patientsState by patientViewModel.patientsState.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
-    var showAddDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         patientViewModel.fetchPatients()
@@ -44,10 +44,10 @@ fun PatientDirectoryScreen(
         containerColor = BackgroundDark,
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { showAddDialog = true },
+                onClick = onNavigateToRegister,
                 containerColor = PrimarySapphire
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Patient", tint = Color.White)
+                Icon(Icons.Default.Add, contentDescription = "Register New Patient", tint = Color.White)
             }
         }
     ) { padding ->
@@ -70,7 +70,7 @@ fun PatientDirectoryScreen(
                         color = Color.White
                     )
                     Text(
-                        text = "Orthodontic Growth Assessment Records (Age 8 to 25 yrs)",
+                        text = "Live Real-Time Firestore Patient Records & Growth Assessments",
                         fontSize = 12.sp,
                         color = TextSecondary
                     )
@@ -82,7 +82,7 @@ fun PatientDirectoryScreen(
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                placeholder = { Text("Search by patient name or ID...") },
+                placeholder = { Text("Search by patient name, ID, or CVM stage...") },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = TextSecondary) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -100,12 +100,13 @@ fun PatientDirectoryScreen(
                 is UiState.Success -> {
                     val filteredPatients = state.data.filter {
                         it.name.contains(searchQuery, ignoreCase = true) ||
-                                (it.patientId?.contains(searchQuery, ignoreCase = true) == true)
+                                (it.patientId?.contains(searchQuery, ignoreCase = true) == true) ||
+                                (it.cvmStage?.contains(searchQuery, ignoreCase = true) == true)
                     }
 
                     if (filteredPatients.isEmpty()) {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("No patient records found.", color = TextSecondary)
+                            Text("No registered patient records found in Firestore.", color = TextSecondary)
                         }
                     } else {
                         LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -124,16 +125,6 @@ fun PatientDirectoryScreen(
                 }
                 else -> {}
             }
-        }
-
-        if (showAddDialog) {
-            AddPatientDialog(
-                onDismiss = { showAddDialog = false },
-                onAdd = { req ->
-                    showAddDialog = false
-                    patientViewModel.addPatient(req)
-                }
-            )
         }
     }
 }
