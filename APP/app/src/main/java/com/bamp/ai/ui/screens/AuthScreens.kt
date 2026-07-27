@@ -406,7 +406,17 @@ fun OtpVerificationScreen(
     onNavigateToDashboard: () -> Unit
 ) {
     var otpCode by remember { mutableStateOf("") }
+    var timerSeconds by remember { mutableStateOf(60) }
+    var resendAttempts by remember { mutableStateOf(0) }
+    val maxAttempts = 3
     val verifyState by authViewModel.verifyOtpState.collectAsState()
+
+    LaunchedEffect(timerSeconds) {
+        if (timerSeconds > 0) {
+            kotlinx.coroutines.delay(1000L)
+            timerSeconds -= 1
+        }
+    }
 
     LaunchedEffect(verifyState) {
         if (verifyState is UiState.Success) {
@@ -452,6 +462,22 @@ fun OtpVerificationScreen(
                     color = TextSecondary
                 )
 
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Timer Countdown Badge (60s)
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = if (timerSeconds > 0) PrimaryBlue.copy(alpha = 0.15f) else Color.Red.copy(alpha = 0.15f)
+                ) {
+                    Text(
+                        text = if (timerSeconds > 0) "OTP Valid for: $timerSeconds sec" else "OTP Expired. Please resend.",
+                        color = if (timerSeconds > 0) PrimaryBlue else Color.Red,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(20.dp))
 
                 OutlinedTextField(
@@ -459,10 +485,11 @@ fun OtpVerificationScreen(
                     onValueChange = { if (it.length <= 6) otpCode = it },
                     label = { Text("6-Digit OTP Code") },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    singleLine = true,
+                    enabled = timerSeconds > 0
                 )
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 Button(
                     onClick = { authViewModel.verifyOtp(email, otpCode) },
@@ -470,7 +497,7 @@ fun OtpVerificationScreen(
                         .fillMaxWidth()
                         .height(48.dp),
                     shape = RoundedCornerShape(12.dp),
-                    enabled = verifyState !is UiState.Loading
+                    enabled = verifyState !is UiState.Loading && timerSeconds > 0 && otpCode.length >= 4
                 ) {
                     if (verifyState is UiState.Loading) {
                         CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
@@ -481,8 +508,32 @@ fun OtpVerificationScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                TextButton(onClick = { onNavigateToResetPassword(email, otpCode) }) {
-                    Text("Use Code to Reset Password", color = PrimaryBlue)
+                // Resend OTP Button (Max 3 attempts)
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    TextButton(
+                        onClick = {
+                            if (resendAttempts < maxAttempts) {
+                                resendAttempts += 1
+                                timerSeconds = 60
+                                authViewModel.requestOtp(email)
+                            }
+                        },
+                        enabled = timerSeconds == 0 && resendAttempts < maxAttempts
+                    ) {
+                        Text(
+                            text = if (resendAttempts >= maxAttempts) "Max Resend Limit Reached ($maxAttempts/$maxAttempts)" else "Resend OTP ($resendAttempts/$maxAttempts)",
+                            color = if (timerSeconds == 0 && resendAttempts < maxAttempts) PrimaryBlue else TextSecondary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    TextButton(onClick = { onNavigateToResetPassword(email, otpCode) }) {
+                        Text("Reset Password", color = PrimaryBlue, fontSize = 12.sp)
+                    }
                 }
 
                 if (verifyState is UiState.Error) {
