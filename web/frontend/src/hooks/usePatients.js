@@ -1,26 +1,28 @@
 import { useState, useEffect } from 'react';
-import { getPatients } from '../services/patientService';
+import { subscribePatients, getPatients } from '../services/patientService';
 
 export const usePatients = () => {
   const [patients, setPatients] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchPatientsList = async () => {
-    setLoading(true);
+  useEffect(() => {
+    const unsub = subscribePatients((list) => {
+      console.log('[Firestore Patient Directory Debug] Collection: patients, Total Documents Loaded:', list.length);
+      setPatients(list);
+      setLoading(false);
+    });
+    return () => unsub();
+  }, []);
+
+  const refreshPatientsList = async () => {
     try {
       const res = await getPatients();
       setPatients(res.data || []);
     } catch (err) {
       setError(err.message);
-    } finally {
-      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchPatientsList();
-  }, []);
-
-  return { patients, loading, error, refreshPatients: fetchPatientsList };
+  return { patients, loading, error, refreshPatients: refreshPatientsList };
 };

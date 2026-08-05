@@ -31,10 +31,16 @@ export const OrthodontistDashboard = () => {
   useEffect(() => {
     if (!db) return;
 
-    // Real-time Firestore Listeners
+    // Real-time Firestore Listeners with Console Debug Logging
     const unsubPatients = onSnapshot(collection(db, 'patients'), (snap) => {
       const patientList = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      const sorted = [...patientList].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+      console.log('[Firestore Dashboard Debug] Collection: patients, Total Documents Loaded:', patientList.length);
+
+      const sorted = [...patientList].sort((a, b) => {
+        const timeA = new Date(a.createdAt || a.timestamp || 0).getTime();
+        const timeB = new Date(b.createdAt || b.timestamp || 0).getTime();
+        return timeB - timeA;
+      });
 
       setRecentPatients(sorted);
       setWidgets(prev => ({
@@ -46,6 +52,8 @@ export const OrthodontistDashboard = () => {
 
     const unsubPredictions = onSnapshot(collection(db, 'predictions'), (snap) => {
       const predList = snap.docs.map(doc => doc.data());
+      console.log('[Firestore Dashboard Debug] Collection: predictions, Total Documents Loaded:', predList.length);
+
       let high = 0;
       let mod = 0;
       let low = 0;
@@ -67,6 +75,7 @@ export const OrthodontistDashboard = () => {
     });
 
     const unsubReports = onSnapshot(collection(db, 'reports'), (snap) => {
+      console.log('[Firestore Dashboard Debug] Collection: reports, Total Documents Loaded:', snap.docs.length);
       setWidgets(prev => ({
         ...prev,
         reportsGenerated: snap.docs.length
@@ -74,6 +83,7 @@ export const OrthodontistDashboard = () => {
     });
 
     const unsubXrays = onSnapshot(collection(db, 'patient_xrays'), (snap) => {
+      console.log('[Firestore Dashboard Debug] Collection: patient_xrays, Total Documents Loaded:', snap.docs.length);
       setWidgets(prev => ({
         ...prev,
         uploadedXrays: snap.docs.length
