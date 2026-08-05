@@ -1,5 +1,6 @@
 package com.bamp.ai.data.repository
 
+import android.util.Log
 import com.bamp.ai.data.model.NotificationItem
 import com.bamp.ai.data.model.Patient
 import com.bamp.ai.data.model.Prediction
@@ -15,6 +16,7 @@ import kotlinx.coroutines.tasks.await
 
 class FirestoreRepository {
     private val db = FirebaseClient.firestore
+    private val TAG = "FirestoreRepository"
 
     // ================= 1. PATIENTS COLLECTION =================
     fun getPatientsFlow(): Flow<List<Patient>> = callbackFlow {
@@ -22,7 +24,8 @@ class FirestoreRepository {
             .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    close(error)
+                    Log.w(TAG, "getPatientsFlow snapshot error: ${error.message}")
+                    trySend(emptyList())
                     return@addSnapshotListener
                 }
                 if (snapshot != null) {
@@ -43,59 +46,84 @@ class FirestoreRepository {
     }
 
     suspend fun getPatientById(id: String): Patient? {
-        val doc = db.collection("patients").document(id).get().await()
-        return doc.toObject(Patient::class.java)
+        return try {
+            val doc = db.collection("patients").document(id).get().await()
+            doc.toObject(Patient::class.java)
+        } catch (e: Exception) {
+            Log.w(TAG, "getPatientById error: ${e.message}")
+            null
+        }
     }
 
     suspend fun updatePatient(patient: Patient) {
-        db.collection("patients").document(patient.id).set(patient).await()
-        logAudit("UPDATE_PATIENT", "Updated patient record: ${patient.name}")
+        try {
+            db.collection("patients").document(patient.id).set(patient).await()
+            logAudit("UPDATE_PATIENT", "Updated patient record: ${patient.name}")
+        } catch (e: Exception) {
+            Log.w(TAG, "updatePatient error: ${e.message}")
+        }
     }
 
     suspend fun deletePatient(patientId: String) {
-        db.collection("patients").document(patientId).delete().await()
-        logAudit("DELETE_PATIENT", "Deleted patient record: $patientId")
+        try {
+            db.collection("patients").document(patientId).delete().await()
+            logAudit("DELETE_PATIENT", "Deleted patient record: $patientId")
+        } catch (e: Exception) {
+            Log.w(TAG, "deletePatient error: ${e.message}")
+        }
     }
 
     // ================= 2. XRAY UPLOADS COLLECTION =================
     suspend fun saveXRayUploadMetadata(patientId: String, imageUrl: String, filename: String) {
-        val ref = db.collection("xrayUploads").document()
-        val record = mapOf(
-            "id" to ref.id,
-            "patientId" to patientId,
-            "imageUrl" to imageUrl,
-            "filename" to filename,
-            "uploadedBy" to (FirebaseClient.auth.currentUser?.email ?: "anonymous"),
-            "timestamp" to com.google.firebase.Timestamp.now()
-        )
-        ref.set(record).await()
-        logAudit("XRAY_UPLOAD", "Uploaded lateral cephalogram for patient $patientId")
+        try {
+            val ref = db.collection("xrayUploads").document()
+            val record = mapOf(
+                "id" to ref.id,
+                "patientId" to patientId,
+                "imageUrl" to imageUrl,
+                "filename" to filename,
+                "uploadedBy" to (FirebaseClient.auth.currentUser?.email ?: "anonymous"),
+                "timestamp" to com.google.firebase.Timestamp.now()
+            )
+            ref.set(record).await()
+            logAudit("XRAY_UPLOAD", "Uploaded lateral cephalogram for patient $patientId")
+        } catch (e: Exception) {
+            Log.w(TAG, "saveXRayUploadMetadata error: ${e.message}")
+        }
     }
 
     // ================= 3. LANDMARKS COLLECTION =================
     suspend fun saveLandmarks(patientId: String, landmarkData: Map<String, Any>) {
-        val ref = db.collection("landmarks").document(patientId)
-        val record = mapOf(
-            "patientId" to patientId,
-            "landmarks" to landmarkData,
-            "status" to "Completed",
-            "updatedAt" to com.google.firebase.Timestamp.now()
-        )
-        ref.set(record).await()
-        logAudit("SAVE_LANDMARKS", "Saved 16 cephalometric landmarks for patient $patientId")
+        try {
+            val ref = db.collection("landmarks").document(patientId)
+            val record = mapOf(
+                "patientId" to patientId,
+                "landmarks" to landmarkData,
+                "status" to "Completed",
+                "updatedAt" to com.google.firebase.Timestamp.now()
+            )
+            ref.set(record).await()
+            logAudit("SAVE_LANDMARKS", "Saved 16 cephalometric landmarks for patient $patientId")
+        } catch (e: Exception) {
+            Log.w(TAG, "saveLandmarks error: ${e.message}")
+        }
     }
 
     // ================= 4. CEPHALOMETRIC ANALYSIS COLLECTION =================
     suspend fun saveCephalometricAnalysis(patientId: String, analysisData: Map<String, Any>) {
-        val ref = db.collection("cephalometricAnalysis").document(patientId)
-        val record = mapOf(
-            "patientId" to patientId,
-            "analysis" to analysisData,
-            "status" to "Calculated",
-            "updatedAt" to com.google.firebase.Timestamp.now()
-        )
-        ref.set(record).await()
-        logAudit("SAVE_ANALYSIS", "Calculated Steiner & Wits analysis for patient $patientId")
+        try {
+            val ref = db.collection("cephalometricAnalysis").document(patientId)
+            val record = mapOf(
+                "patientId" to patientId,
+                "analysis" to analysisData,
+                "status" to "Calculated",
+                "updatedAt" to com.google.firebase.Timestamp.now()
+            )
+            ref.set(record).await()
+            logAudit("SAVE_ANALYSIS", "Calculated Steiner & Wits analysis for patient $patientId")
+        } catch (e: Exception) {
+            Log.w(TAG, "saveCephalometricAnalysis error: ${e.message}")
+        }
     }
 
     // ================= 5. PREDICTIONS COLLECTION =================
@@ -103,7 +131,11 @@ class FirestoreRepository {
         val listener = db.collection("predictions")
             .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
-                if (error != null) return@addSnapshotListener
+                if (error != null) {
+                    Log.w(TAG, "getPredictionsFlow snapshot error: ${error.message}")
+                    trySend(emptyList())
+                    return@addSnapshotListener
+                }
                 if (snapshot != null) {
                     trySend(snapshot.toObjects(Prediction::class.java))
                 }
@@ -115,20 +147,21 @@ class FirestoreRepository {
         val ref = db.collection("predictions").document()
         val docId = if (prediction.id.isNotEmpty()) prediction.id else ref.id
         val newPred = prediction.copy(id = docId)
-        db.collection("predictions").document(docId).set(newPred).await()
-        
-        // Update patient record status
-        if (prediction.patientId.isNotEmpty()) {
-            db.collection("patients").document(prediction.patientId)
-                .update(
-                    mapOf(
-                        "predictionStatus" to "Completed",
-                        "latestPredictionScore" to prediction.successProbability
-                    )
-                ).await()
+        try {
+            db.collection("predictions").document(docId).set(newPred).await()
+            if (prediction.patientId.isNotEmpty()) {
+                db.collection("patients").document(prediction.patientId)
+                    .update(
+                        mapOf(
+                            "predictionStatus" to "Completed",
+                            "latestPredictionScore" to prediction.successProbability
+                        )
+                    ).await()
+            }
+            logAudit("CREATE_PREDICTION", "Generated AI BAMP prediction for patient ${prediction.patientName}")
+        } catch (e: Exception) {
+            Log.w(TAG, "savePrediction error: ${e.message}")
         }
-
-        logAudit("CREATE_PREDICTION", "Generated AI BAMP prediction for patient ${prediction.patientName}")
         return docId
     }
 
@@ -137,7 +170,11 @@ class FirestoreRepository {
         val listener = db.collection("reports")
             .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
-                if (error != null) return@addSnapshotListener
+                if (error != null) {
+                    Log.w(TAG, "getReportsFlow snapshot error: ${error.message}")
+                    trySend(emptyList())
+                    return@addSnapshotListener
+                }
                 if (snapshot != null) {
                     trySend(snapshot.toObjects(Report::class.java))
                 }
@@ -149,20 +186,33 @@ class FirestoreRepository {
         val ref = db.collection("reports").document()
         val docId = if (report.id.isNotEmpty()) report.id else ref.id
         val newReport = report.copy(id = docId)
-        db.collection("reports").document(docId).set(newReport).await()
-        logAudit("CREATE_REPORT", "Generated clinical PDF report: ${report.reportNumber}")
+        try {
+            db.collection("reports").document(docId).set(newReport).await()
+            logAudit("CREATE_REPORT", "Generated clinical PDF report: ${report.reportNumber}")
+        } catch (e: Exception) {
+            Log.w(TAG, "saveReport error: ${e.message}")
+        }
         return docId
     }
 
     // ================= 7. USERS COLLECTION =================
     suspend fun getUserProfile(uid: String): User? {
-        val doc = db.collection("users").document(uid).get().await()
-        return doc.toObject(User::class.java)
+        return try {
+            val doc = db.collection("users").document(uid).get().await()
+            doc.toObject(User::class.java)
+        } catch (e: Exception) {
+            Log.w(TAG, "getUserProfile error: ${e.message}")
+            null
+        }
     }
 
     suspend fun saveUserProfile(user: User) {
-        db.collection("users").document(user.uid).set(user).await()
-        logAudit("UPDATE_PROFILE", "Updated user profile for ${user.email}")
+        try {
+            db.collection("users").document(user.uid).set(user).await()
+            logAudit("UPDATE_PROFILE", "Updated user profile for ${user.email}")
+        } catch (e: Exception) {
+            Log.w(TAG, "saveUserProfile error: ${e.message}")
+        }
     }
 
     // ================= NOTIFICATIONS =================
@@ -170,7 +220,11 @@ class FirestoreRepository {
         val listener = db.collection("notifications")
             .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
-                if (error != null) return@addSnapshotListener
+                if (error != null) {
+                    Log.w(TAG, "getNotificationsFlow snapshot error: ${error.message}")
+                    trySend(emptyList())
+                    return@addSnapshotListener
+                }
                 if (snapshot != null) {
                     val list = snapshot.toObjects(NotificationItem::class.java)
                         .filter { it.userId.isEmpty() || it.userId == userId }
