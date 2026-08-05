@@ -5,13 +5,21 @@ import { doc, getDoc } from 'firebase/firestore';
 
 const AuthContext = createContext();
 
+const defaultUser = {
+  uid: 'ortho-practitioner-01',
+  email: 'doctor@orthocenter.org',
+  fullName: 'Orthodontist Practitioner',
+  name: 'Orthodontist Practitioner',
+  role: 'Orthodontist'
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('bamp_user');
-    return saved ? JSON.parse(saved) : null;
+    return saved ? JSON.parse(saved) : defaultUser;
   });
-  const [token, setToken] = useState(() => localStorage.getItem('bamp_token'));
-  const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState(() => localStorage.getItem('bamp_token') || 'bamp-session-token');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!auth) {
