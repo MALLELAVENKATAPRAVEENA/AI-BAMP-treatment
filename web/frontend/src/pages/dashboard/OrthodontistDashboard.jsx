@@ -7,6 +7,7 @@ import {
 import { Header } from '../../components/common/Header';
 import { StatCard } from '../../components/common/StatCard';
 import { getDashboardStats } from '../../services/aiService';
+import { getPatients } from '../../services/patientService';
 import { db } from '../../firebase/firebaseConfig';
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
