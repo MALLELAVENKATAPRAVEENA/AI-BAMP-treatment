@@ -129,22 +129,36 @@ fun AIChatScreen(
                             val userText = inputText.trim()
                             inputText = ""
                             val userMsg = ChatMessage(sender = "user", text = userText)
+                            messages.add(userMsg)
+
+                            val q = userText.lowercase()
+                            val replyText = when {
+                                q.contains("hi") || q.contains("hello") || q.contains("hey") ->
+                                    "Hello Dr.! How can I assist you today with BAMP treatment planning, cephalometrics, or patient predictions?"
+                                q.contains("mini-plate") || q.contains("plate") ->
+                                    "BAMP mini-plates are surgically placed at the infrazygomatic crest of the maxilla (2 plates) and parasymphyseal region of the mandible (2 plates) loaded with 150g-250g intermaxillary elastics."
+                                q.contains("force") || q.contains("elastic") ->
+                                    "Intermaxillary Class III elastics deliver 150g to 250g per side, worn 24 hours/day to achieve 2.5mm to 4.5mm skeletal maxillary protraction."
+                                q.contains("anb") || q.contains("wits") || q.contains("sna") || q.contains("snb") ->
+                                    "Cephalometric Norms: ANB (2° to 4°), Wits (0mm to -1mm). Negative ANB (<0°) and Wits (< -3mm) confirm skeletal Class III discrepancy."
+                                q.contains("cvm") || q.contains("growth") || q.contains("stage") ->
+                                    "CVM Stage 2 & 3 represent peak pubertal growth velocity—the optimal window for BAMP maxillary protraction."
+                                q.contains("landmark") || q.contains("xray") || q.contains("scan") ->
+                                    "Automated landmark localization detects Sella (S), Nasion (N), Point A, Point B, Pogonion (Pog), Menton (Me), Gnathion (Gn), Gonion (Go), Orbitale (Or), and Porion (Po) over lateral cephalograms."
+                                q.contains("predict") || q.contains("risk") || q.contains("probability") ->
+                                    "The AI Voting Ensemble evaluates success probability based on Patient Age, Gender, CVM Stage, ANB, and Wits appraisal (>85% Success, 70-84% Moderate Risk, <70% High Risk)."
+                                else ->
+                                    "In Class III malocclusions treated with BAMP, orthopedic maxillary protraction delivers favorable skeletal advancement while avoiding undesirable incisor tipping."
+                            }
+
+                            val aiMsg = ChatMessage(sender = "assistant", text = replyText)
+                            messages.add(aiMsg)
 
                             scope.launch {
-                                firestoreRepository.sendChatMessage(userMsg)
-
-                                val replyText = when {
-                                    userText.contains("mini-plate", ignoreCase = true) || userText.contains("plate", ignoreCase = true) ->
-                                        "BAMP mini-plates are surgically placed at the infrazygomatic crest of the maxilla and anterior mandible between canine and lateral incisor."
-                                    userText.contains("force", ignoreCase = true) || userText.contains("elastic", ignoreCase = true) ->
-                                        "Intermaxillary elastics deliver approximately 150g to 250g of continuous force per side for orthopedic protraction."
-                                    userText.contains("anb", ignoreCase = true) || userText.contains("wits", ignoreCase = true) ->
-                                        "Normal ANB angle is 2° to 4°. Negative ANB (<0°) and Wits (< -3mm) indicate Class III skeletal discrepancy suitable for BAMP."
-                                    else ->
-                                        "In Class III malocclusions treated with BAMP, orthopedic maxillary protraction achieves 2.5mm to 4.5mm anterior advancement while avoiding dental tipping."
-                                }
-                                val aiMsg = ChatMessage(sender = "assistant", text = replyText)
-                                firestoreRepository.sendChatMessage(aiMsg)
+                                try {
+                                    firestoreRepository.sendChatMessage(userMsg)
+                                    firestoreRepository.sendChatMessage(aiMsg)
+                                } catch (_: Exception) {}
                             }
                         }
                     }

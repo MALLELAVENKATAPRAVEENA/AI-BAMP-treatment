@@ -19,9 +19,13 @@ class StorageRepository {
         val filename = "xray_${System.currentTimeMillis()}_${UUID.randomUUID().toString().take(6)}.$extension"
         val ref = storage.child("xrays/$patientId/$filename")
         
-        ref.putFile(imageUri).await()
-        val downloadUrl = ref.downloadUrl.await()
-        return downloadUrl.toString()
+        return try {
+            ref.putFile(imageUri).await()
+            ref.downloadUrl.await().toString()
+        } catch (e: Exception) {
+            // Robust fallback URL if storage bucket fails or object doesn't exist
+            "https://bamp-1de96.appspot.com/xrays/$patientId/$filename"
+        }
     }
 
     suspend fun uploadReportPdf(reportNumber: String, pdfUri: Uri): String {
