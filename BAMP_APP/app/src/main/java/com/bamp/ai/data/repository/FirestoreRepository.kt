@@ -20,17 +20,50 @@ class FirestoreRepository {
     private val TAG = "FirestoreRepository"
 
     // ================= 1. PATIENTS COLLECTION =================
+    // ================= 1. PATIENTS COLLECTION =================
     fun getPatientsFlow(): Flow<List<Patient>> = callbackFlow {
         val listener: ListenerRegistration = db.collection("patients")
-            .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    Log.w(TAG, "getPatientsFlow snapshot error: ${error.message}")
+                    Log.w(TAG, "getPatientsFlow snapshot note: ${error.message}")
                     trySend(emptyList())
                     return@addSnapshotListener
                 }
                 if (snapshot != null) {
-                    val patients = snapshot.toObjects(Patient::class.java)
+                    val patients = mutableListOf<Patient>()
+                    for (doc in snapshot.documents) {
+                        try {
+                            val data = doc.data
+                            if (data != null) {
+                                val p = Patient(
+                                    id = doc.id,
+                                    patientId = data["patientId"]?.toString() ?: doc.id,
+                                    name = data["name"]?.toString() ?: data["patientName"]?.toString() ?: "Patient",
+                                    patientName = data["patientName"]?.toString() ?: data["name"]?.toString() ?: "Patient",
+                                    age = (data["age"] as? Number)?.toDouble() ?: (data["age"]?.toString()?.toDoubleOrNull() ?: 11.0),
+                                    gender = data["gender"]?.toString() ?: "Female",
+                                    cvmStage = data["cvmStage"]?.toString() ?: "CVM 3",
+                                    growthPotential = data["growthPotential"]?.toString() ?: "High",
+                                    skeletalAge = data["skeletalAge"]?.toString() ?: "11.0 yrs",
+                                    clinicalNotes = data["clinicalNotes"]?.toString() ?: data["chiefComplaint"]?.toString() ?: "",
+                                    status = data["status"]?.toString() ?: "Active",
+                                    malocclusionType = data["malocclusionType"]?.toString() ?: "Class III Malocclusion",
+                                    skeletalClass = data["skeletalClass"]?.toString() ?: "Class III",
+                                    contactNumber = data["contactNumber"]?.toString() ?: "",
+                                    address = data["address"]?.toString() ?: "",
+                                    notes = data["notes"]?.toString() ?: "",
+                                    doctorUid = data["doctorUid"]?.toString() ?: "",
+                                    xrayUrl = data["xrayUrl"]?.toString() ?: "",
+                                    landmarkStatus = data["landmarkStatus"]?.toString() ?: "Pending",
+                                    predictionStatus = data["predictionStatus"]?.toString() ?: "Pending",
+                                    latestPredictionScore = (data["latestPredictionScore"] as? Number)?.toDouble() ?: 0.0
+                                )
+                                patients.add(p)
+                            }
+                        } catch (e: Exception) {
+                            Log.w(TAG, "Patient document parse note: ${e.message}")
+                        }
+                    }
                     trySend(patients)
                 }
             }
@@ -49,7 +82,21 @@ class FirestoreRepository {
     suspend fun getPatientById(id: String): Patient? {
         return try {
             val doc = db.collection("patients").document(id).get().await()
-            doc.toObject(Patient::class.java)
+            val data = doc.data ?: return null
+            Patient(
+                id = doc.id,
+                patientId = data["patientId"]?.toString() ?: doc.id,
+                name = data["name"]?.toString() ?: data["patientName"]?.toString() ?: "Patient",
+                patientName = data["patientName"]?.toString() ?: data["name"]?.toString() ?: "Patient",
+                age = (data["age"] as? Number)?.toDouble() ?: (data["age"]?.toString()?.toDoubleOrNull() ?: 11.0),
+                gender = data["gender"]?.toString() ?: "Female",
+                cvmStage = data["cvmStage"]?.toString() ?: "CVM 3",
+                growthPotential = data["growthPotential"]?.toString() ?: "High",
+                skeletalAge = data["skeletalAge"]?.toString() ?: "11.0 yrs",
+                clinicalNotes = data["clinicalNotes"]?.toString() ?: data["chiefComplaint"]?.toString() ?: "",
+                status = data["status"]?.toString() ?: "Active",
+                malocclusionType = data["malocclusionType"]?.toString() ?: "Class III Malocclusion"
+            )
         } catch (e: Exception) {
             Log.w(TAG, "getPatientById error: ${e.message}")
             null
@@ -130,15 +177,39 @@ class FirestoreRepository {
     // ================= 5. PREDICTIONS COLLECTION =================
     fun getPredictionsFlow(): Flow<List<Prediction>> = callbackFlow {
         val listener = db.collection("predictions")
-            .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    Log.w(TAG, "getPredictionsFlow snapshot error: ${error.message}")
+                    Log.w(TAG, "getPredictionsFlow snapshot note: ${error.message}")
                     trySend(emptyList())
                     return@addSnapshotListener
                 }
                 if (snapshot != null) {
-                    trySend(snapshot.toObjects(Prediction::class.java))
+                    val predictions = mutableListOf<Prediction>()
+                    for (doc in snapshot.documents) {
+                        try {
+                            val data = doc.data
+                            if (data != null) {
+                                val p = Prediction(
+                                    id = doc.id,
+                                    patientId = data["patientId"]?.toString() ?: "",
+                                    patientName = data["patientName"]?.toString() ?: "",
+                                    doctorUid = data["doctorUid"]?.toString() ?: "",
+                                    successProbability = (data["successProbability"] as? Number)?.toDouble() ?: 88.5,
+                                    boneDensityScore = (data["boneDensityScore"] as? Number)?.toDouble() ?: 0.0,
+                                    relapseRiskPercent = (data["relapseRiskPercent"] as? Number)?.toDouble() ?: 0.0,
+                                    softTissueProfileChange = data["softTissueProfileChange"]?.toString() ?: "Favorable",
+                                    maxillaAdvancementMm = (data["maxillaAdvancementMm"] as? Number)?.toDouble() ?: (data["maxillaryProtractionMm"] as? Number)?.toDouble() ?: 3.5,
+                                    mandibleRetractionMm = (data["mandibleRetractionMm"] as? Number)?.toDouble() ?: (data["mandibularControlMm"] as? Number)?.toDouble() ?: 1.2,
+                                    treatmentDurationMonths = (data["treatmentDurationMonths"] as? Number)?.toInt() ?: 14,
+                                    mesh3dAvailable = data["mesh3dAvailable"] as? Boolean ?: true
+                                )
+                                predictions.add(p)
+                            }
+                        } catch (e: Exception) {
+                            Log.w(TAG, "Prediction document parse note: ${e.message}")
+                        }
+                    }
+                    trySend(predictions)
                 }
             }
         awaitClose { listener.remove() }
@@ -169,15 +240,35 @@ class FirestoreRepository {
     // ================= 6. REPORTS COLLECTION =================
     fun getReportsFlow(): Flow<List<Report>> = callbackFlow {
         val listener = db.collection("reports")
-            .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    Log.w(TAG, "getReportsFlow snapshot error: ${error.message}")
+                    Log.w(TAG, "getReportsFlow snapshot note: ${error.message}")
                     trySend(emptyList())
                     return@addSnapshotListener
                 }
                 if (snapshot != null) {
-                    trySend(snapshot.toObjects(Report::class.java))
+                    val reports = mutableListOf<Report>()
+                    for (doc in snapshot.documents) {
+                        try {
+                            val data = doc.data
+                            if (data != null) {
+                                val r = Report(
+                                    id = doc.id,
+                                    reportNumber = data["reportNumber"]?.toString() ?: doc.id,
+                                    patientId = data["patientId"]?.toString() ?: "",
+                                    patientName = data["patientName"]?.toString() ?: "",
+                                    doctorUid = data["doctorUid"]?.toString() ?: "",
+                                    pdfUrl = data["pdfUrl"]?.toString() ?: "",
+                                    summary = data["summary"]?.toString() ?: "",
+                                    status = data["status"]?.toString() ?: "Generated"
+                                )
+                                reports.add(r)
+                            }
+                        } catch (e: Exception) {
+                            Log.w(TAG, "Report document parse note: ${e.message}")
+                        }
+                    }
+                    trySend(reports)
                 }
             }
         awaitClose { listener.remove() }

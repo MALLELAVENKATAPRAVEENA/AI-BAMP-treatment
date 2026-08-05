@@ -243,7 +243,7 @@ fun PatientDetailScreen(
                     confirmButton = {
                         Button(
                             onClick = {
-                                val newAge = editAgeStr.toIntOrNull() ?: currentPatient.age
+                                val newAge = editAgeStr.toDoubleOrNull() ?: currentPatient.age
                                 val updated = currentPatient.copy(name = editName, age = newAge, malocclusionType = editMalocclusion)
                                 scope.launch {
                                     firestoreRepository.updatePatient(updated)

@@ -9,7 +9,7 @@ data class Patient(
     val patientId: String = "", // e.g. PAT-2026-001
     val name: String = "",
     val patientName: String = "",
-    val age: Int = 0,
+    val age: Double = 0.0,
     val gender: String = "Female",
     val cvmStage: String = "CVM 3",
     val growthPotential: String = "High",

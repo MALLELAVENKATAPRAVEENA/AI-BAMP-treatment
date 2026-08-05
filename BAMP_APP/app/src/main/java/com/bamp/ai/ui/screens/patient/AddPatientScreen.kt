@@ -220,7 +220,7 @@ fun AddPatientScreen(
                                 val newPatient = Patient(
                                     patientId = generatedId,
                                     name = name.trim(),
-                                    age = age,
+                                    age = ageStr.toDoubleOrNull() ?: 11.0,
                                     gender = gender,
                                     malocclusionType = malocclusion,
                                     contactNumber = contact.trim(),

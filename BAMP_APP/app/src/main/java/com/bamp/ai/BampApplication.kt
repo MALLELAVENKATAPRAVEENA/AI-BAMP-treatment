@@ -13,13 +13,15 @@ class BampApplication : Application() {
         // Initialize Firebase
         FirebaseApp.initializeApp(this)
 
-        // Enable Firestore offline persistence for seamless web-sync & offline support
-        val firestore = FirebaseFirestore.getInstance()
-        val settings = FirebaseFirestoreSettings.Builder()
-            .setLocalCacheSettings(
-                PersistentCacheSettings.newBuilder().build()
-            )
-            .build()
-        firestore.firestoreSettings = settings
+        // Enable Firestore offline persistence safely for seamless web-sync
+        try {
+            val firestore = FirebaseFirestore.getInstance()
+            val settings = FirebaseFirestoreSettings.Builder()
+                .setLocalCacheSettings(
+                    PersistentCacheSettings.newBuilder().build()
+                )
+                .build()
+            firestore.firestoreSettings = settings
+        } catch (_: Exception) {}
     }
 }

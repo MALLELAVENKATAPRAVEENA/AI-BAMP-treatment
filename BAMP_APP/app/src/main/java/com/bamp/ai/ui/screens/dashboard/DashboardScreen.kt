@@ -231,7 +231,7 @@ fun DashboardScreen(
                                             val testPatient = Patient(
                                                 patientId = testId,
                                                 name = "Test Patient $testId",
-                                                age = 12,
+                                                age = 12.0,
                                                 gender = "Male",
                                                 malocclusionType = "Skeletal Class III",
                                                 doctorUid = FirebaseClient.auth.currentUser?.uid ?: "test_doc"
