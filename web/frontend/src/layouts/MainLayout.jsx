@@ -26,9 +26,10 @@ export const MainLayout = () => {
 
   useEffect(() => {
     checkServerConnection();
-    const interval = setInterval(checkServerConnection, 15000);
+    const interval = setInterval(checkServerConnection, 10000);
     return () => clearInterval(interval);
   }, [checkServerConnection]);
+
 
   return (
     <Box display="flex" flexDirection="column" minHeight="100vh" position="relative">

@@ -31,10 +31,12 @@ app.use('/reports', express.static(path.join(__dirname, '../reports')));
 // Health Check Endpoint (Public)
 app.get('/api/health', (req, res) => {
   res.status(200).json({
+    success: true,
+    message: 'Backend Connected',
     status: 'OK',
     service: 'AI BAMP Outcome Predictor API Server',
     environment: config.nodeEnv,
-    timestamp: new Date().toISOString()
+    timestamp: new Date()
   });
 });
 
@@ -55,8 +57,9 @@ app.use('*', (req, res) => {
 // Global Error Middleware
 app.use(errorHandler);
 
-const PORT = config.port;
+const PORT = config.port || 5000;
 app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
   console.log(`=================================================`);
   console.log(`🚀 AI BAMP Predictor Backend Server active on port ${PORT}`);
   console.log(`📡 Listening on 0.0.0.0:${PORT} (LAN & Localhost accessible)`);
@@ -64,5 +67,6 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`🤖 AI Microservice URL: ${config.aiServiceUrl}`);
   console.log(`=================================================`);
 });
+
 
 module.exports = app;

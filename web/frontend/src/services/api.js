@@ -1,6 +1,6 @@
-import axios from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+// Local Development: http://localhost:5000/api | Production: VITE_API_BASE_URL || /api
+const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (isLocal ? 'http://localhost:5000/api' : '/api');
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -8,6 +8,7 @@ const api = axios.create({
     'Content-Type': 'application/json'
   }
 });
+
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('bamp_token');
