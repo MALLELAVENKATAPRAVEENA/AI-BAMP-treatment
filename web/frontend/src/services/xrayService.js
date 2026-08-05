@@ -35,6 +35,7 @@ export const uploadXray = async (formData) => {
 
   if (db) {
     try {
+      await setDoc(doc(db, 'patient_xrays', uploadId), xrayData);
       await setDoc(doc(db, 'xrayUploads', uploadId), xrayData);
       return {
         success: true,
@@ -42,7 +43,7 @@ export const uploadXray = async (formData) => {
         message: 'X-Ray uploaded and stored in Firebase successfully'
       };
     } catch (fErr) {
-      console.warn('Firestore xrayUploads error:', fErr.message);
+      console.warn('Firestore patient_xrays error:', fErr.message);
     }
   }
 
