@@ -2,7 +2,7 @@
   "name": "ai-bamp-treatment",
   "version": "1.0.0",
   "scripts": {
-    "build": "npm --prefix web/frontend run build",
+    "build": "npm --prefix web/frontend run build && powershell -Command \"New-Item -ItemType Directory -Path 'dist' -Force; Copy-Item -Path 'web\\frontend\\dist\\*' -Destination 'dist' -Recurse -Force\"",
     "dev:frontend": "npm --prefix web/frontend run dev",
     "dev:backend": "npm --prefix web/backend run dev",
     "start:backend": "npm --prefix web/backend run start"

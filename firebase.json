@@ -1,7 +1,7 @@
 {
   "hosting": {
     "site": "bamp-1de96",
-    "public": "web/frontend/dist",
+    "public": "dist",
     "ignore": [
       "firebase.json",
       "**/.*",
