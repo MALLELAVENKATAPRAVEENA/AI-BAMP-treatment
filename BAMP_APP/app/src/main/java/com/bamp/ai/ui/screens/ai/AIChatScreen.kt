@@ -58,7 +58,7 @@ fun AIChatScreen(
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
-        firestoreRepository.getChatMessagesFlow().collectLatest { list ->
+        firestoreRepository.getChatMessagesFlow().collectLatest { list: List<ChatMessage> ->
             messages.clear()
             if (list.isEmpty()) {
                 messages.add(

@@ -1,6 +1,7 @@
 package com.bamp.ai.data.repository
 
 import android.util.Log
+import com.bamp.ai.data.model.ChatMessage
 import com.bamp.ai.data.model.NotificationItem
 import com.bamp.ai.data.model.Patient
 import com.bamp.ai.data.model.Prediction

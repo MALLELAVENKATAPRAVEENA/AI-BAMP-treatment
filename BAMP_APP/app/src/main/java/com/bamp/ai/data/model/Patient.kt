@@ -8,8 +8,13 @@ data class Patient(
     @DocumentId val id: String = "",
     val patientId: String = "", // e.g. PAT-2026-001
     val name: String = "",
+    val patientName: String = "",
     val age: Int = 0,
-    val gender: String = "Male",
+    val gender: String = "Female",
+    val cvmStage: String = "CVM 3",
+    val growthPotential: String = "High",
+    val skeletalAge: String = "11.0 yrs",
+    val clinicalNotes: String = "",
     val status: String = "Active", // Active, In Treatment, Completed
     val malocclusionType: String = "Class III Malocclusion",
     val skeletalClass: String = "Class III",
