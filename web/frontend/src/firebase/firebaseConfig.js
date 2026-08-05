@@ -18,12 +18,13 @@ if (envApiKey.startsWith("1:")) {
 }
 
 const firebaseConfig = {
-  apiKey: finalApiKey || "AIzaSyB5Gtum9UGrXge7k_L5T7KhPOuRg4fddgE",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyCfKQNXwdARp9qJAz1IOi1k8VEmN3iiiFk",
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "bamp-1de96.firebaseapp.com",
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "bamp-1de96",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "bamp-1de96.appspot.com",
-  messagingSenderId: finalSenderId,
-  appId: finalAppId || "1:824105088863:web:c9c542beec73897aa8a8ea"
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "bamp-1de96.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "824105088863",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:824105088863:web:c9c542beec73897aa8a8ea",
+  measurementId: "G-3HCD21BVCL"
 };
 
 let app;
