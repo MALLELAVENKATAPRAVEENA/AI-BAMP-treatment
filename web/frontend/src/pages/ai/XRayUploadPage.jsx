@@ -212,7 +212,10 @@ export const XRayUploadPage = () => {
 
       setProgress(100);
       setActiveStep(2);
-      showNotification('✅ Valid Cephalometric X-Ray verified! 14 Cephalometric Landmarks localized.', 'success');
+      showNotification('✅ Valid Cephalometric X-Ray verified! Proceeding to Landmark Detection...', 'success');
+      setTimeout(() => {
+        navigate('/ai/landmark-detection');
+      }, 500);
     } catch (err) {
       setProgress(100);
       const errMsg = err.message || 'Invalid Image Detected. Please upload a valid Lateral Cephalometric X-Ray.';
