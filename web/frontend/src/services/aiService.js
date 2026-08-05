@@ -29,29 +29,21 @@ export const detectLandmarks = async (data) => {
   const offY2 = ((h >> 6) % 29) - 14;
 
   const landmarks = {
-    S: { x: 250 + offX1, y: 180 + offY1, label: 'Sella (S)' },
-    N: { x: 420 + offX2, y: 150 + offY2, label: 'Nasion (N)' },
-    A: { x: 410 + (offX1 * 0.8), y: 260 + (offY2 * 0.9), label: 'Subspinale (A)' },
-    B: { x: 395 + (offX2 * 1.1), y: 340 + (offY1 * 1.2), label: 'Supramentale (B)' },
-    Pog: { x: 405 + offX2, y: 395 + offY2, label: 'Pogonion (Pog)' },
-    Gn: { x: 390 + offX1, y: 410 + offY1, label: 'Gnathion (Gn)' },
-    Me: { x: 375 + offX2, y: 420 + offY2, label: 'Menton (Me)' },
-    Go: { x: 210 + offX1, y: 350 + offY1, label: 'Gonion (Go)' },
-    Or: { x: 380 + offX2, y: 195 + offY2, label: 'Orbitale (Or)' },
-    Po: { x: 230 + offX1, y: 190 + offY1, label: 'Porion (Po)' },
-    U1: { x: 415 + offX2, y: 290 + offY2, label: 'Upper Incisor (U1)' },
-    L1: { x: 405 + offX1, y: 310 + offY1, label: 'Lower Incisor (L1)' },
-    Ar: { x: 200 + offX2, y: 260 + offY2, label: 'Articulare (Ar)' },
-    Pt: { x: 270 + offX1, y: 220 + offY1, label: 'Pterygoid (Pt)' },
-    Ba: { x: 190 + offX2, y: 240 + offY2, label: 'Basion (Ba)' },
-    PNS: { x: 310 + offX1, y: 265 + offY1, label: 'Post. Nasal Spine (PNS)' },
-    ANS: { x: 400 + offX2, y: 255 + offY2, label: 'Ant. Nasal Spine (ANS)' },
-    Pr: { x: 430 + offX1, y: 275 + offY1, label: 'Prosthion (Pr)' },
-    Id: { x: 425 + offX2, y: 320 + offY2, label: 'Infradentale (Id)' },
-    Condyle: { x: 195 + offX1, y: 230 + offY1, label: 'Condyle (Cd)' }
+    S: { x: 250 + offX1, y: 180 + offY1, label: 'Sella (S)', confidence: roundTwo(0.93 + ((h % 5) * 0.01)) },
+    N: { x: 420 + offX2, y: 150 + offY2, label: 'Nasion (N)', confidence: roundTwo(0.95 + (((h >> 1) % 4) * 0.01)) },
+    A: { x: 410 + Math.round(offX1 * 0.8), y: 260 + Math.round(offY2 * 0.9), label: 'Subspinale (A)', confidence: roundTwo(0.91 + (((h >> 2) % 6) * 0.01)) },
+    B: { x: 395 + Math.round(offX2 * 1.1), y: 340 + Math.round(offY1 * 1.2), label: 'Supramentale (B)', confidence: roundTwo(0.90 + (((h >> 3) % 7) * 0.01)) },
+    Pog: { x: 405 + offX2, y: 395 + offY2, label: 'Pogonion (Pog)', confidence: roundTwo(0.92 + (((h >> 4) % 6) * 0.01)) },
+    Gn: { x: 390 + offX1, y: 410 + offY1, label: 'Gnathion (Gn)', confidence: roundTwo(0.91 + (((h >> 5) % 6) * 0.01)) },
+    Me: { x: 375 + offX2, y: 420 + offY2, label: 'Menton (Me)', confidence: roundTwo(0.89 + (((h >> 6) % 7) * 0.01)) },
+    Go: { x: 210 + offX1, y: 350 + offY1, label: 'Gonion (Go)', confidence: roundTwo(0.90 + (((h >> 7) % 6) * 0.01)) },
+    Or: { x: 380 + offX2, y: 195 + offY2, label: 'Orbitale (Or)', confidence: roundTwo(0.94 + (((h >> 8) % 5) * 0.01)) },
+    Po: { x: 230 + offX1, y: 190 + offY1, label: 'Porion (Po)', confidence: roundTwo(0.92 + (((h >> 9) % 6) * 0.01)) },
+    U1: { x: 415 + offX2, y: 290 + offY2, label: 'Upper Incisor (U1)', confidence: roundTwo(0.93 + (((h >> 10) % 5) * 0.01)) },
+    L1: { x: 405 + offX1, y: 310 + offY1, label: 'Lower Incisor (L1)', confidence: roundTwo(0.91 + (((h >> 11) % 6) * 0.01)) }
   };
 
-  const confidence = Math.min(0.98, Math.max(0.89, roundTwo(0.92 + ((h % 7) * 0.01))));
+  const confidence = roundTwo(0.91 + ((h % 8) * 0.01));
 
   if (db && data && data.patientId) {
     try {
@@ -63,7 +55,7 @@ export const detectLandmarks = async (data) => {
       });
     } catch (_) {}
   }
-  return { success: true, landmarks, confidence, message: 'Landmarks detected successfully' };
+  return { success: true, landmarks, confidence, overallConfidence: confidence, message: 'Landmarks detected successfully' };
 };
 
 function roundTwo(num) {

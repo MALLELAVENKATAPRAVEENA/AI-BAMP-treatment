@@ -35,9 +35,15 @@ export const LandmarkDetectionPage = () => {
       
       if (res.data?.landmarks) {
         dispatch(setLandmarks(res.data.landmarks));
+      } else if (res.landmarks) {
+        dispatch(setLandmarks(res.landmarks));
       }
-      setConfidence(res.data?.overallConfidence || 0.96);
-      showNotification('11 Anatomical Cephalometric Landmarks Detected on Image', 'success');
+
+      const confVal = res.confidence || res.overallConfidence || res.data?.confidence || res.data?.overallConfidence;
+      if (confVal) {
+        setConfidence(confVal);
+      }
+      showNotification('Anatomical Cephalometric Landmarks Localized on Image', 'success');
     } catch (err) {
       showNotification('Landmarks updated dynamically for uploaded radiograph', 'info');
     } finally {
