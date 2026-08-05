@@ -7,6 +7,8 @@ import {
 import { Header } from '../../components/common/Header';
 import { StatCard } from '../../components/common/StatCard';
 import { getDashboardStats } from '../../services/aiService';
+import { db } from '../../firebase/firebaseConfig';
+import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
 export const OrthodontistDashboard = () => {
@@ -24,6 +26,70 @@ export const OrthodontistDashboard = () => {
 
   useEffect(() => {
     fetchStats();
+
+    if (!db) return;
+
+    // Real-time Firestore Live Snapshots
+    const unsubPatients = onSnapshot(collection(db, 'patients'), (snap) => {
+      const patientList = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setStats(prev => ({
+        ...prev,
+        widgets: {
+          ...prev?.widgets,
+          totalPatients: patientList.length,
+          newPatientsThisMonth: patientList.length
+        },
+        recent: {
+          ...prev?.recent,
+          recentPatients: patientList.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+        }
+      }));
+    });
+
+    const unsubPredictions = onSnapshot(collection(db, 'predictions'), (snap) => {
+      const predList = snap.docs.map(doc => doc.data());
+      const high = predList.filter(p => (p.successProbability || p.score || 0) >= 85).length;
+      const mod = predList.filter(p => (p.successProbability || p.score || 0) >= 70 && (p.successProbability || p.score || 0) < 85).length;
+      const low = predList.filter(p => (p.successProbability || p.score || 0) < 70).length;
+
+      setStats(prev => ({
+        ...prev,
+        widgets: {
+          ...prev?.widgets,
+          predictionCount: predList.length,
+          successfulCases: high,
+          moderateRiskCases: mod,
+          highRiskCases: low
+        }
+      }));
+    });
+
+    const unsubReports = onSnapshot(collection(db, 'reports'), (snap) => {
+      setStats(prev => ({
+        ...prev,
+        widgets: {
+          ...prev?.widgets,
+          reportsGenerated: snap.docs.length
+        }
+      }));
+    });
+
+    const unsubXrays = onSnapshot(collection(db, 'xrayUploads'), (snap) => {
+      setStats(prev => ({
+        ...prev,
+        widgets: {
+          ...prev?.widgets,
+          uploadedXrays: snap.docs.length
+        }
+      }));
+    });
+
+    return () => {
+      unsubPatients();
+      unsubPredictions();
+      unsubReports();
+      unsubXrays();
+    };
   }, []);
 
   const widgets = stats?.widgets || {
@@ -87,8 +153,6 @@ export const OrthodontistDashboard = () => {
         </Grid>
       </Grid>
 
-
-
       {/* Recent Patients Activity Table */}
       <Box mt={4}>
         <Typography variant="h6" fontWeight={700} mb={2}>
@@ -108,8 +172,8 @@ export const OrthodontistDashboard = () => {
               </TableHead>
               <TableBody>
                 {recent.recentPatients.map((p) => (
-                  <TableRow key={p.patientId} hover sx={{ cursor: 'pointer' }} onClick={() => navigate(`/patients/${p.patientId}`)}>
-                    <TableCell sx={{ fontWeight: 700, color: 'primary.main' }}>{p.patientId}</TableCell>
+                  <TableRow key={p.patientId || p.id} hover sx={{ cursor: 'pointer' }} onClick={() => navigate(`/patients/${p.patientId || p.id}`)}>
+                    <TableCell sx={{ fontWeight: 700, color: 'primary.main' }}>{p.patientId || p.id}</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>{p.patientName || p.name}</TableCell>
                     <TableCell>{p.age} yrs / {p.gender}</TableCell>
                     <TableCell><Chip label={p.cvmStage || 'CVM 3'} size="small" color="primary" variant="outlined" /></TableCell>
