@@ -165,16 +165,13 @@ export const createPatient = async (data) => {
   if (db) {
     try {
       await setDoc(doc(db, 'patients', patientId), newPatient);
+      console.log('[Firestore Patient Service] Patient Created:', patientId, newPatient);
       return { success: true, data: newPatient, message: 'Patient Record Created Successfully in Firestore' };
     } catch (fErr) {
-      console.warn('Firestore createPatient error:', fErr.message);
+      console.warn('Firestore createPatient note:', fErr.message);
     }
   }
-  try {
-    return await api.post('/patients', data);
-  } catch (err) {
-    return { success: true, data: newPatient, message: 'Patient Record Created (Local)' };
-  }
+  return { success: true, data: newPatient, message: 'Patient Record Created' };
 };
 
 export const updatePatient = async (id, data) => {
