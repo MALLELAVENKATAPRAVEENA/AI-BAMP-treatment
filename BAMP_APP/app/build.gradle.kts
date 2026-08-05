@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.bamp.ai"
+    namespace = "com.aibamp.app"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.bamp.ai"
+        applicationId = "com.aibamp.app"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
