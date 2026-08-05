@@ -13,74 +13,70 @@ import { useNavigate } from 'react-router-dom';
 
 export const OrthodontistDashboard = () => {
   const navigate = useNavigate();
-  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const fetchStats = () => {
-    setLoading(true);
-    getDashboardStats()
-      .then((res) => setStats(res.data))
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
-  };
+  const [widgets, setWidgets] = useState({
+    totalPatients: 0,
+    newPatientsThisMonth: 0,
+    predictionCount: 0,
+    successfulCases: 0,
+    moderateRiskCases: 0,
+    highRiskCases: 0,
+    uploadedXrays: 0,
+    reportsGenerated: 0
+  });
+
+  const [recentPatients, setRecentPatients] = useState([]);
 
   useEffect(() => {
-    fetchStats();
-
     if (!db) return;
 
-    // Real-time Firestore Live Snapshots
+    // Real-time Firestore Listeners
     const unsubPatients = onSnapshot(collection(db, 'patients'), (snap) => {
       const patientList = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setStats(prev => ({
+      const sorted = [...patientList].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+      setRecentPatients(sorted);
+      setWidgets(prev => ({
         ...prev,
-        widgets: {
-          ...prev?.widgets,
-          totalPatients: patientList.length,
-          newPatientsThisMonth: patientList.length
-        },
-        recent: {
-          ...prev?.recent,
-          recentPatients: patientList.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
-        }
+        totalPatients: patientList.length,
+        newPatientsThisMonth: patientList.length
       }));
     });
 
     const unsubPredictions = onSnapshot(collection(db, 'predictions'), (snap) => {
       const predList = snap.docs.map(doc => doc.data());
-      const high = predList.filter(p => (p.successProbability || p.score || 0) >= 85).length;
-      const mod = predList.filter(p => (p.successProbability || p.score || 0) >= 70 && (p.successProbability || p.score || 0) < 85).length;
-      const low = predList.filter(p => (p.successProbability || p.score || 0) < 70).length;
+      let high = 0;
+      let mod = 0;
+      let low = 0;
 
-      setStats(prev => ({
+      predList.forEach(p => {
+        const score = p.successProbability || p.score || 85;
+        if (score >= 85) high++;
+        else if (score >= 70) mod++;
+        else low++;
+      });
+
+      setWidgets(prev => ({
         ...prev,
-        widgets: {
-          ...prev?.widgets,
-          predictionCount: predList.length,
-          successfulCases: high,
-          moderateRiskCases: mod,
-          highRiskCases: low
-        }
+        predictionCount: predList.length,
+        successfulCases: high,
+        moderateRiskCases: mod,
+        highRiskCases: low
       }));
     });
 
     const unsubReports = onSnapshot(collection(db, 'reports'), (snap) => {
-      setStats(prev => ({
+      setWidgets(prev => ({
         ...prev,
-        widgets: {
-          ...prev?.widgets,
-          reportsGenerated: snap.docs.length
-        }
+        reportsGenerated: snap.docs.length
       }));
     });
 
-    const unsubXrays = onSnapshot(collection(db, 'xrayUploads'), (snap) => {
-      setStats(prev => ({
+    const unsubXrays = onSnapshot(collection(db, 'patient_xrays'), (snap) => {
+      setWidgets(prev => ({
         ...prev,
-        widgets: {
-          ...prev?.widgets,
-          uploadedXrays: snap.docs.length
-        }
+        uploadedXrays: snap.docs.length
       }));
     });
 
@@ -92,24 +88,6 @@ export const OrthodontistDashboard = () => {
     };
   }, []);
 
-  const widgets = stats?.widgets || {
-    totalPatients: 0,
-    newPatientsThisMonth: 0,
-    predictionCount: 0,
-    successfulCases: 0,
-    moderateRiskCases: 0,
-    highRiskCases: 0,
-    uploadedXrays: 0,
-    reportsGenerated: 0
-  };
-
-  const recent = stats?.recent || {
-    recentPatients: [],
-    recentUploads: [],
-    recentPredictions: [],
-    recentReports: []
-  };
-
   return (
     <Box>
       <Header
@@ -117,10 +95,12 @@ export const OrthodontistDashboard = () => {
         subtitle="Real-time BAMP Treatment Outcome Monitoring & Live Firebase Firestore Predictive Analytics"
         action={
           <Box display="flex" gap={1}>
-            <IconButton onClick={fetchStats} disabled={loading} color="primary">
-              <Refresh className={loading ? 'animate-spin' : ''} />
-            </IconButton>
-            <Button variant="contained" startIcon={<PersonAdd />} onClick={() => navigate('/patients/add')} sx={{ borderRadius: '12px', fontWeight: 700 }}>
+            <Button
+              variant="contained"
+              startIcon={<PersonAdd />}
+              onClick={() => navigate('/patients/add')}
+              sx={{ borderRadius: '12px', fontWeight: 700 }}
+            >
               New Patient
             </Button>
           </Box>
@@ -156,10 +136,10 @@ export const OrthodontistDashboard = () => {
       {/* Recent Patients Activity Table */}
       <Box mt={4}>
         <Typography variant="h6" fontWeight={700} mb={2}>
-          Recent Patients Registered in Firestore
+          Recent Patients Registered in Firestore Database (Real-time Live Sync)
         </Typography>
         <Card sx={{ borderRadius: '16px' }}>
-          {recent.recentPatients && recent.recentPatients.length > 0 ? (
+          {recentPatients && recentPatients.length > 0 ? (
             <Table>
               <TableHead>
                 <TableRow sx={{ bgcolor: 'action.hover' }}>
@@ -171,13 +151,13 @@ export const OrthodontistDashboard = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {recent.recentPatients.map((p) => (
+                {recentPatients.map((p) => (
                   <TableRow key={p.patientId || p.id} hover sx={{ cursor: 'pointer' }} onClick={() => navigate(`/patients/${p.patientId || p.id}`)}>
                     <TableCell sx={{ fontWeight: 700, color: 'primary.main' }}>{p.patientId || p.id}</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>{p.patientName || p.name}</TableCell>
                     <TableCell>{p.age} yrs / {p.gender}</TableCell>
                     <TableCell><Chip label={p.cvmStage || 'CVM 3'} size="small" color="primary" variant="outlined" /></TableCell>
-                    <TableCell>{p.bampStartDate || new Date().toISOString().split('T')[0]}</TableCell>
+                    <TableCell>{p.bampStartDate || (p.createdAt ? p.createdAt.split('T')[0] : '2026-01-15')}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
