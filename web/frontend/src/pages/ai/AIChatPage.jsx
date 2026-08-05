@@ -28,58 +28,73 @@ const generatePatientContextAwareResponse = (prompt, patient, measurements, pred
   const score = prediction?.successProbability || patient?.latestPredictionScore || 88.5;
   const risk = prediction?.riskCategory || (score < 65 ? 'High Risk' : score < 80 ? 'Moderate Risk' : 'Low Risk');
 
-  if (q.includes('anb') || q.includes('wits') || q.includes('measurement') || q.includes('value')) {
-    return `### 📐 Cephalometric Analysis for ${name}
+  if (q.includes('hi') || q.includes('hello') || q.includes('hey') || q.includes('greeting')) {
+    return `### 👋 Welcome! I am your Gemini-powered BAMP AI Assistant
 
-- **ANB Angle:** **${anb}°** (Normal: 2° to 4°). ${anb < 0 ? `Negative value indicates **Class III Skeletal Discrepancy** with maxillary retrognathism/mandibular prognathism.` : 'Class I relationship.'}
-- **Wits Appraisal:** **${wits} mm** (Normal: 0mm to -1mm). ${wits < -3.0 ? `Linear discrepancy < -3mm confirms severe skeletal Class III discrepancy.` : 'Moderate discrepancy.'}
-- **SNA Angle:** **${sna}°** (Maxillary position relative to cranial base).
-- **SNB Angle:** **${snb}°** (Mandibular position relative to cranial base).
+I can assist you with:
+- **Cephalometric Discrepancy Diagnostics** (ANB, Wits, SNA, SNB, FMA, IMPA)
+- **Surgical & Orthopedic Protocols** (4 BAMP mini-plates, intermaxillary elastics force)
+- **CVM Growth Velocity Assessment** (CVM 1 through CVM 6 pubertal windows)
+- **AI Outcome Predictions & Relapse Risk Calculations**
 
-**Clinical Interpretation:** ${name} presents a Class III skeletal pattern suitable for Bone-Anchored Maxillary Protraction (BAMP) during peak pubertal growth.`;
+${patient ? `Active Chart: **${name}** (Age ${age}, ${cvm}, ANB ${anb}°, Pred: ${score}%)` : 'Select a patient chart above or ask any clinical orthodontic question!'}`;
   }
 
-  if (q.includes('risk') || q.includes('why') || q.includes('prediction') || q.includes('success')) {
-    return `### 🎯 BAMP Outcome Prediction Breakdown for ${name}
+  if (q.includes('anb') || q.includes('wits') || q.includes('measurement') || q.includes('value') || q.includes('angle')) {
+    return `### 📐 Cephalometric Analysis Breakdown for ${name}
+
+- **ANB Angle:** **${anb}°** (Normal: 2.0° to 4.0°). ${anb < 0 ? `Negative ANB confirms **Class III Skeletal Discrepancy** (maxillary retrognathism or mandibular prognathism).` : 'Class I relationship.'}
+- **Wits Appraisal:** **${wits} mm** (Normal: 0.0mm to -1.0mm). ${wits < -3.0 ? `Linear discrepancy < -3mm indicates severe sagittal jaw disharmony.` : 'Moderate discrepancy.'}
+- **SNA Angle:** **${sna}°** (Maxilla to cranial base norm: 82.0°).
+- **SNB Angle:** **${snb}°** (Mandible to cranial base norm: 80.0°).
+
+**Gemini Clinical Recommendation:** ${name} presents a skeletal Class III discrepancy with high sutural adaptability for BAMP maxillary protraction.`;
+  }
+
+  if (q.includes('risk') || q.includes('why') || q.includes('prediction') || q.includes('success') || q.includes('score')) {
+    return `### 🎯 BAMP Outcome Prediction & Relapse Risk for ${name}
 
 - **Predicted Success Probability:** **${score}%**
 - **Risk Classification:** **${risk}**
-- **CVM Growth Stage:** **${cvm}** (Age ${age} yrs)
+- **CVM Maturation Window:** **${cvm}** (Age ${age} yrs)
 - **ANB Discrepancy:** **${anb}°**
 
-**Clinical Explanation:** 
+**Clinical Rationale:** 
 ${score >= 80 
-  ? `${name} is in **${cvm}**, which represents peak/accelerating pubertal growth velocity. The moderate negative ANB (${anb}°) responds optimally to mini-plate anchored Class III elastics without dental tipping.`
-  : `${name} has a **${risk}** assessment due to ${cvm.includes('5') || cvm.includes('6') ? 'advanced skeletal maturation (growth nearly completed)' : 'severe skeletal discrepancy (ANB < -5°)'}. Surgical orthognathic consultation may be required if orthopedic response is limited.`}`;
+  ? `${name} is in **${cvm}**, corresponding to peak pubertal growth velocity. Pure skeletal protraction of 3.5mm-4.5mm can be achieved without dental compensation.`
+  : `${name} requires close monitoring due to ${cvm.includes('5') || cvm.includes('6') ? 'advanced skeletal maturation (growth completed)' : 'severe skeletal discrepancy (ANB < -5.0°)'}. Surgical orthognathic consultation may be required.`}`;
   }
 
-  if (q.includes('bamp') || q.includes('protocol') || q.includes('recommend') || q.includes('treatment')) {
-    return `### 🦷 Customized BAMP Protocol for ${name}
+  if (q.includes('bamp') || q.includes('protocol') || q.includes('recommend') || q.includes('treatment') || q.includes('plate')) {
+    return `### 🦷 Comprehensive BAMP Protocol & Surgical Guidance
 
-1. **Surgical Mini-Plate Placement:**
-   - 2 Infrazygomatic crest mini-plates (Maxilla).
-   - 2 Parasymphyseal mini-plates (Mandible between canine & lateral incisor).
-2. **Force & Elastics:**
-   - **150g per side** Class III intermaxillary elastics for initial 4 weeks, increasing to **200g-250g**.
-   - Wear time: **24 hours/day**.
-3. **Expected Protraction:** Estimated **3.2mm to 4.5mm** maxillary advancement over a **14-month** treatment duration.`;
+1. **Surgical Mini-Plate Fixation:**
+   - **Maxilla:** 2 mini-plates placed at the **infrazygomatic crest** secured with 3-4 titanium monocortical screws.
+   - **Mandible:** 2 mini-plates placed at the **parasymphyseal region** between mandibular canine and lateral incisor.
+2. **Intermaxillary Force Application:**
+   - **Elastics Force:** **150g per side** for initial 4 weeks, increasing to **200g-250g per side**.
+   - **Wear Duration:** Continuous **24 hours/day**, replaced daily.
+3. **Expected Orthopedic Response:** Average **3.2mm to 4.8mm** maxillary advancement over **12 to 16 months** of active therapy.`;
   }
 
-  if (q.includes('cvm') || q.includes('stage') || q.includes('growth')) {
-    return `### 📊 Growth Assessment for ${name} (${cvm})
+  if (q.includes('cvm') || q.includes('stage') || q.includes('growth') || q.includes('maturation')) {
+    return `### 📊 Cervical Vertebral Maturation (CVM) Growth Velocity
 
-${name} is currently at **${cvm}** (Age ${age} yrs). 
-${cvm.includes('3') || cvm.includes('2') 
-  ? `This is the **OPTIMAL BAMP WINDOW** characterized by peak mandibular growth velocity and maximum sutural orthopedic adaptability.`
-  : `Patient has passed peak pubertal growth velocity. Orthopedic protraction requires careful monitoring.`}`;
+${name} is evaluated at **${cvm}** (Age ${age} yrs).
+
+- **CVM 1 - CVM 2:** Accelerating growth phase; excellent for early orthopedic intervention.
+- **CVM 3:** **PEAK PUBERTAL GROWTH VELOCITY**—The absolute gold-standard optimal window for BAMP maxillary protraction.
+- **CVM 4:** Decelerating growth velocity; orthopedic response is reduced.
+- **CVM 5 - CVM 6:** Skeletal maturation completed; surgical orthognathic option indicated if severe.`;
   }
 
-  return `### 🤖 Gemini AI Clinical Summary for ${name}
+  return `### 🤖 Gemini AI Clinical Insights for ${name}
 
-- **Patient Chart:** ${name} (Age ${age}, ${patient?.gender || 'Patient'})
-- **Growth Stage:** ${cvm}
+- **Patient Chart:** ${name} (Age ${age}, ${cvm})
 - **ANB / Wits:** ${anb}° / ${wits} mm
-- **BAMP AI Success Probability:** ${score}% (${risk})
+- **BAMP Success Score:** ${score}% (${risk})
+
+**Clinical Summary:** BAMP protocol achieves pure skeletal protraction by loading continuous Class III elastics onto 4 osseointegrated mini-plates, bypassing dental tipping. 
 
 How else can I assist your treatment planning for ${name}?`;
 };
