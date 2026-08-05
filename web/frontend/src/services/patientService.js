@@ -130,27 +130,44 @@ export const getPatientById = async (id) => {
   return { success: true, data: found || defaultClinicalDataset[0] };
 };
 
+const sanitizeForFirestore = (obj) => {
+  if (!obj || typeof obj !== 'object') return obj;
+  const cleaned = {};
+  Object.keys(obj).forEach(key => {
+    if (obj[key] !== undefined) {
+      cleaned[key] = obj[key] === null ? '' : obj[key];
+    }
+  });
+  return cleaned;
+};
+
 export const createPatient = async (data) => {
   const patientId = data.id || data.patientId || `PAT-${Date.now()}`;
-  const newPatient = {
+  const rawPatient = {
     ...data,
     id: patientId,
     patientId,
     patientName: data.patientName || data.name || 'New Patient',
     name: data.name || data.patientName || 'New Patient',
-    skeletalAge: data.skeletalAge || `${data.age || 10} yrs`,
-    clinicalNotes: data.clinicalNotes || '',
-    treatmentRecords: data.treatmentRecords || '',
+    age: Number(data.age || 11),
+    gender: data.gender || 'Female',
+    cvmStage: data.cvmStage || 'CVM 3',
+    growthPotential: data.growthPotential || 'High',
+    skeletalAge: data.skeletalAge ? `${data.skeletalAge} yrs` : `${data.age || 11} yrs`,
+    clinicalNotes: data.clinicalNotes || data.chiefComplaint || '',
+    treatmentRecords: data.treatmentRecords || 'BAMP Protocol Evaluated',
     createdAt: new Date().toISOString(),
     status: data.status || 'Active'
   };
+
+  const newPatient = sanitizeForFirestore(rawPatient);
 
   if (db) {
     try {
       await setDoc(doc(db, 'patients', patientId), newPatient);
       return { success: true, data: newPatient, message: 'Patient Record Created Successfully in Firestore' };
     } catch (fErr) {
-      console.warn('Firestore createPatient error:', fErr);
+      console.warn('Firestore createPatient error:', fErr.message);
     }
   }
   try {
@@ -161,15 +178,17 @@ export const createPatient = async (data) => {
 };
 
 export const updatePatient = async (id, data) => {
+  const updatedData = sanitizeForFirestore({
+    ...data,
+    updatedAt: new Date().toISOString()
+  });
+
   if (db) {
     try {
-      await updateDoc(doc(db, 'patients', id), {
-        ...data,
-        updatedAt: new Date().toISOString()
-      });
+      await updateDoc(doc(db, 'patients', id), updatedData);
       return { success: true, message: 'Patient Record Updated Successfully in Firestore' };
     } catch (fErr) {
-      console.warn('Firestore updatePatient error:', fErr);
+      console.warn('Firestore updatePatient error:', fErr.message);
     }
   }
   try {
