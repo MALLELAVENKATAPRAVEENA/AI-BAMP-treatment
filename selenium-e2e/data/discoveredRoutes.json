@@ -1,0 +1,127 @@
+{
+  "timestamp": "2026-08-05T20:35:32.092Z",
+  "routes": [
+    {
+      "path": "/login",
+      "protected": false,
+      "component": "LoginPage"
+    },
+    {
+      "path": "/signup",
+      "protected": false,
+      "component": "SignupPage"
+    },
+    {
+      "path": "/verify-otp",
+      "protected": true,
+      "component": "VerifyOTPPage"
+    },
+    {
+      "path": "/forgot-password",
+      "protected": false,
+      "component": "ForgotPasswordPage"
+    },
+    {
+      "path": "/reset-password",
+      "protected": true,
+      "component": "ResetPasswordPage"
+    },
+    {
+      "path": "/",
+      "protected": true,
+      "component": "Navigate"
+    },
+    {
+      "path": "/dashboard",
+      "protected": true,
+      "component": "OrthodontistDashboard"
+    },
+    {
+      "path": "/admin/dashboard",
+      "protected": true,
+      "component": "Navigate"
+    },
+    {
+      "path": "/researcher/dashboard",
+      "protected": true,
+      "component": "Navigate"
+    },
+    {
+      "path": "/patients",
+      "protected": true,
+      "component": "PatientListPage"
+    },
+    {
+      "path": "/patients/add",
+      "protected": true,
+      "component": "AddPatientPage"
+    },
+    {
+      "path": "/patients/edit/:id",
+      "protected": true,
+      "component": "EditPatientPage"
+    },
+    {
+      "path": "/patients/:id",
+      "protected": true,
+      "component": "PatientDetailsPage"
+    },
+    {
+      "path": "/patients/:id/growth",
+      "protected": true,
+      "component": "GrowthAssessmentPage"
+    },
+    {
+      "path": "/ai/xray-upload",
+      "protected": true,
+      "component": "XRayUploadPage"
+    },
+    {
+      "path": "/ai/landmark-detection",
+      "protected": true,
+      "component": "LandmarkDetectionPage"
+    },
+    {
+      "path": "/ai/cephalometric-analysis",
+      "protected": true,
+      "component": "CephalometricAnalysisPage"
+    },
+    {
+      "path": "/ai/prediction-results",
+      "protected": true,
+      "component": "PredictionResultsPage"
+    },
+    {
+      "path": "/ai/chat",
+      "protected": true,
+      "component": "AIChatPage"
+    },
+    {
+      "path": "/reports",
+      "protected": true,
+      "component": "ReportsListPage"
+    },
+    {
+      "path": "/reports/generate",
+      "protected": true,
+      "component": "GenerateReportPage"
+    },
+    {
+      "path": "/settings/profile",
+      "protected": true,
+      "component": "ProfilePage"
+    },
+    {
+      "path": "/settings/notifications",
+      "protected": true,
+      "component": "NotificationsPage"
+    },
+    {
+      "path": "/settings/security",
+      "protected": true,
+      "component": "SecurityPage"
+    }
+  ],
+  "forms": [],
+  "generatedScenarios": []
+}

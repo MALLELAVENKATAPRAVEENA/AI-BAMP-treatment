@@ -1,0 +1,37 @@
+{
+  "auth": {
+    "validUser": {
+      "email": "ortho.doctor@bamp.com",
+      "password": "Password123!"
+    },
+    "invalidUser": {
+      "email": "invalid.doctor@bamp.com",
+      "password": "WrongPassword999"
+    },
+    "emptyFields": {
+      "email": "",
+      "password": ""
+    }
+  },
+  "patientForm": {
+    "validPatient": {
+      "name": "E2E Test Patient Alpha",
+      "age": "12",
+      "gender": "Male",
+      "malocclusionType": "Skeletal Class III",
+      "cvmStage": "CVM 3"
+    },
+    "invalidPatient": {
+      "name": "",
+      "age": "-5",
+      "gender": "",
+      "malocclusionType": ""
+    }
+  },
+  "expectedMessages": {
+    "authFailure": "Invalid credentials",
+    "requiredError": "This field is required",
+    "invalidEmail": "Invalid email address format",
+    "objectNotFound": "Object Not Found"
+  }
+}

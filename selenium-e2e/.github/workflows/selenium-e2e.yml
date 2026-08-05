@@ -1,0 +1,69 @@
+name: Enterprise Selenium E2E Automation Pipeline
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  selenium-e2e-tests:
+    name: Execute Cross-Browser Selenium E2E Test Suite
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        browser: [chrome, firefox]
+
+    steps:
+      - name: 1. Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 2. Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 3. Install Selenium E2E Dependencies
+        run: |
+          cd selenium-e2e
+          npm ci || npm install
+
+      - name: 4. Install Browsers (Chrome & Firefox)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable firefox xvfb
+
+      - name: 5. Execute Dynamic React Route & Form Discovery
+        run: |
+          cd selenium-e2e
+          npm run discover-routes
+
+      - name: 6. Run Selenium Headless E2E Tests (${{ matrix.browser }})
+        env:
+          BASE_URL: 'https://bamp-1de96.web.app'
+          CROSS_BROWSER: ${{ matrix.browser }}
+          HEADLESS: 'true'
+        run: |
+          cd selenium-e2e
+          npm run test
+
+      - name: 7. Generate Excel & Mochawesome HTML Reports
+        if: always()
+        run: |
+          cd selenium-e2e
+          npm run report:excel
+
+      - name: 8. Upload E2E Test Artifacts (Excel, HTML Reports, Screenshots, Logs)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-e2e-report-${{ matrix.browser }}
+          path: |
+            selenium-e2e/excel/E2E_Report.xlsx
+            selenium-e2e/reports/
+            selenium-e2e/screenshots/
+            selenium-e2e/logs/
+          retention-days: 30

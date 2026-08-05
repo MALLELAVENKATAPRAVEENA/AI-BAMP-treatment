@@ -1,0 +1,17 @@
+{
+  "diff": true,
+  "extension": ["js"],
+  "package": "./package.json",
+  "reporter": "mochawesome",
+  "reporter-option": [
+    "reportDir=reports/html",
+    "reportFilename=E2E_Execution_Report",
+    "quiet=true",
+    "json=true",
+    "html=true"
+  ],
+  "slow": 75,
+  "timeout": 60000,
+  "ui": "bdd",
+  "parallel": false
+}
