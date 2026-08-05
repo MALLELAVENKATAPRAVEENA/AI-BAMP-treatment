@@ -1,0 +1,17 @@
+{
+  "hosting": {
+    "site": "bamp-1de96",
+    "public": "web/frontend/dist",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

@@ -42,4 +42,6 @@ APP/.gradle/
 Thumbs.db
 .vscode/
 .idea/
+.firebase/
+
 
