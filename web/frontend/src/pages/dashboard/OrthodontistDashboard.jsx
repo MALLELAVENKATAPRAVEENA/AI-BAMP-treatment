@@ -29,6 +29,18 @@ export const OrthodontistDashboard = () => {
   const [recentPatients, setRecentPatients] = useState([]);
 
   useEffect(() => {
+    // Initial fetch to seed default data if empty and load immediately
+    getPatients().then((res) => {
+      if (res?.data && res.data.length > 0) {
+        setRecentPatients(res.data);
+        setWidgets(prev => ({
+          ...prev,
+          totalPatients: res.data.length,
+          newPatientsThisMonth: res.data.length
+        }));
+      }
+    }).catch(err => console.warn('Dashboard initial fetch notice:', err));
+
     if (!db) return;
 
     // Real-time Firestore Listeners with Console Debug Logging
@@ -36,10 +48,16 @@ export const OrthodontistDashboard = () => {
       const patientList = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       console.log('[Firestore Dashboard Debug] Collection: patients, Total Documents Loaded:', patientList.length);
 
+      const getTime = (val) => {
+        if (!val) return 0;
+        if (typeof val === 'string') return new Date(val).getTime();
+        if (val.seconds) return val.seconds * 1000;
+        if (val.toDate && typeof val.toDate === 'function') return val.toDate().getTime();
+        return 0;
+      };
+
       const sorted = [...patientList].sort((a, b) => {
-        const timeA = new Date(a.createdAt || a.timestamp || 0).getTime();
-        const timeB = new Date(b.createdAt || b.timestamp || 0).getTime();
-        return timeB - timeA;
+        return getTime(b.createdAt || b.timestamp) - getTime(a.createdAt || a.timestamp);
       });
 
       setRecentPatients(sorted);
@@ -97,6 +115,18 @@ export const OrthodontistDashboard = () => {
       unsubXrays();
     };
   }, []);
+
+  const formatDate = (dateVal) => {
+    if (!dateVal) return '2026-01-15';
+    if (typeof dateVal === 'string') return dateVal.split('T')[0];
+    if (dateVal.toDate && typeof dateVal.toDate === 'function') {
+      try { return dateVal.toDate().toISOString().split('T')[0]; } catch (_) {}
+    }
+    if (dateVal.seconds) {
+      try { return new Date(dateVal.seconds * 1000).toISOString().split('T')[0]; } catch (_) {}
+    }
+    return '2026-01-15';
+  };
 
   return (
     <Box>
@@ -167,7 +197,7 @@ export const OrthodontistDashboard = () => {
                     <TableCell sx={{ fontWeight: 600 }}>{p.patientName || p.name}</TableCell>
                     <TableCell>{p.age} yrs / {p.gender}</TableCell>
                     <TableCell><Chip label={p.cvmStage || 'CVM 3'} size="small" color="primary" variant="outlined" /></TableCell>
-                    <TableCell>{p.bampStartDate || (p.createdAt ? p.createdAt.split('T')[0] : '2026-01-15')}</TableCell>
+                    <TableCell>{formatDate(p.bampStartDate || p.createdAt || p.timestamp)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
