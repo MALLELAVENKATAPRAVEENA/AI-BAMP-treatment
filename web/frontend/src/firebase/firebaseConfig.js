@@ -18,7 +18,7 @@ if (envApiKey.startsWith("1:")) {
 }
 
 const firebaseConfig = {
-  apiKey: finalApiKey || "AIzaSyBamp1de96WebClientApiKey2026",
+  apiKey: finalApiKey || "AIzaSyB5Gtum9UGrXge7k_L5T7KhPOuRg4fddgE",
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "bamp-1de96.firebaseapp.com",
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "bamp-1de96",
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "bamp-1de96.appspot.com",
