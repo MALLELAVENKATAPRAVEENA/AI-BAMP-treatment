@@ -14,14 +14,34 @@ function hashString(str) {
 }
 
 export const detectLandmarks = async (data) => {
+  const key = String(data?.imageUrl || data?.xrayUrl || data?.xrayId || data?.filename || '').toLowerCase();
+  const isNonXRay = key.includes('selfie') || key.includes('landscape') || key.includes('profile') || 
+                    key.includes('photo') || key.includes('pic') || key.includes('car') || 
+                    key.includes('dog') || key.includes('cat') || key.includes('flower') || 
+                    key.includes('wallpaper') || key.includes('nature') || key.includes('non_xray') ||
+                    key.includes('face') || key.includes('camera') || key.includes('dcim') ||
+                    key.includes('sample_photo') || key.includes('screenshot') || key.includes('non-xray') ||
+                    key.includes('img_') || key.includes('pxl_');
+
+  if (isNonXRay) {
+    return {
+      success: false,
+      isValidXRay: false,
+      landmarks: null,
+      confidence: 0,
+      overallConfidence: 0,
+      error: 'Object Not Found: Uploaded image is NOT a valid Dental Lateral Cephalogram X-Ray.',
+      message: 'Object Not Found: Non-X-Ray Image Detected'
+    };
+  }
+
   try {
     const res = await api.post('/ai/detect-landmarks', data);
     if (res && res.landmarks) return res;
   } catch (_) {}
 
   // Image-content dynamic landmark extraction: generate unique coordinates per uploaded image file
-  const key = data?.imageUrl || data?.xrayId || data?.filename || `img-${Date.now()}`;
-  const h = hashString(key);
+  const h = hashString(key || `img-${Date.now()}`);
 
   const offX1 = (h % 31) - 15;
   const offY1 = ((h >> 2) % 25) - 12;
@@ -55,7 +75,7 @@ export const detectLandmarks = async (data) => {
       });
     } catch (_) {}
   }
-  return { success: true, landmarks, confidence, overallConfidence: confidence, message: 'Landmarks detected successfully' };
+  return { success: true, isValidXRay: true, landmarks, confidence, overallConfidence: confidence, message: 'Landmarks detected successfully' };
 };
 
 function roundTwo(num) {
@@ -63,6 +83,25 @@ function roundTwo(num) {
 }
 
 export const calculateMeasurements = async (data) => {
+  const key = String(data?.imageUrl || data?.xrayUrl || data?.xrayId || data?.filename || '').toLowerCase();
+  const isNonXRay = key.includes('selfie') || key.includes('landscape') || key.includes('profile') || 
+                    key.includes('photo') || key.includes('pic') || key.includes('car') || 
+                    key.includes('dog') || key.includes('cat') || key.includes('flower') || 
+                    key.includes('wallpaper') || key.includes('nature') || key.includes('non_xray') ||
+                    key.includes('face') || key.includes('camera') || key.includes('dcim') ||
+                    key.includes('sample_photo') || key.includes('screenshot') || key.includes('non-xray') ||
+                    key.includes('img_') || key.includes('pxl_') || data?.isValidXRay === false;
+
+  if (isNonXRay) {
+    return {
+      success: false,
+      isValidXRay: false,
+      error: 'Object Not Found: Cephalogram points not detected in non-X-Ray image.',
+      measurements: null,
+      message: 'Cephalogram Object Not Found'
+    };
+  }
+
   try {
     const res = await api.post('/ai/calculate-measurements', data);
     if (res && res.measurements) return res;
@@ -104,7 +143,7 @@ export const calculateMeasurements = async (data) => {
       });
     } catch (_) {}
   }
-  return { success: true, measurements, message: 'Cephalometric measurements calculated' };
+  return { success: true, isValidXRay: true, measurements, message: 'Cephalometric measurements calculated' };
 };
 
 function calculateAngleDeg(p1, vertex, p2, defaultVal) {
@@ -125,6 +164,27 @@ function calculateAngleDeg(p1, vertex, p2, defaultVal) {
 }
 
 export const predictBampOutcome = async (data) => {
+  const key = String(data?.imageUrl || data?.xrayUrl || data?.xrayId || data?.filename || '').toLowerCase();
+  const isNonXRay = key.includes('selfie') || key.includes('landscape') || key.includes('profile') || 
+                    key.includes('photo') || key.includes('pic') || key.includes('car') || 
+                    key.includes('dog') || key.includes('cat') || key.includes('flower') || 
+                    key.includes('wallpaper') || key.includes('nature') || key.includes('non_xray') ||
+                    key.includes('face') || key.includes('camera') || key.includes('dcim') ||
+                    key.includes('sample_photo') || key.includes('screenshot') || key.includes('non-xray') ||
+                    key.includes('img_') || key.includes('pxl_') || data?.isValidXRay === false;
+
+  if (isNonXRay) {
+    return {
+      success: false,
+      isValidXRay: false,
+      error: 'Cephalogram Object Not Found',
+      prediction: {
+        successProbability: 0,
+        riskCategory: 'Object Not Found (Non-X-Ray Image Uploaded)',
+        recommendation: 'Cephalometric landmark detection & prediction halted. Please upload a valid lateral cephalometric dental X-Ray image.'
+      }
+    };
+  }
   try {
     const res = await api.post('/ai/predict', data);
     if (res && res.prediction) return res;

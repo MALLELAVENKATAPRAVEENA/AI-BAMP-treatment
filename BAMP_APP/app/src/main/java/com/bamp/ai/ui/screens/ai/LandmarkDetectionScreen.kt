@@ -19,8 +19,12 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -44,10 +48,17 @@ fun LandmarkDetectionScreen(
     onNavigateNotifications: () -> Unit,
     onNavigateProfile: () -> Unit
 ) {
-    val landmarks = remember { emptyList<com.bamp.ai.data.model.LandmarkPoint>() }
     val firestoreRepository = remember { FirestoreRepository() }
+    var patient by remember { androidx.compose.runtime.mutableStateOf<com.bamp.ai.data.model.Patient?>(null) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    androidx.compose.runtime.LaunchedEffect(patientId) {
+        patient = firestoreRepository.getPatientById(patientId)
+    }
+
+    val isNonXRay = patient?.xrayUrl?.contains("non_xray") == true || patient?.landmarkStatus == "Object Not Found"
+    val landmarks = remember(isNonXRay) { emptyList<com.bamp.ai.data.model.LandmarkPoint>() }
 
     Scaffold(
         topBar = {
@@ -67,28 +78,42 @@ fun LandmarkDetectionScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Card(
-                colors = CardDefaults.cardColors(containerColor = BampCardBg),
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Automated AI Landmark Overlay",
-                        color = BampSecondary,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "Interactive anatomical point detection: Sella, Nasion, A-Point, B-Point, Pogonion, Menton, Gonion, Porion, Orbitale.",
-                        color = BampTextSecondary,
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(vertical = 4.dp)
-                    )
+            if (isNonXRay) {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color(0xFF3B1219)),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("⚠️ Object Not Found", color = androidx.compose.ui.graphics.Color.Red, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("Uploaded image is NOT a valid Dental Lateral Cephalogram X-Ray. Cephalometric landmark localization halted.", color = BampTextPrimary, fontSize = 13.sp)
+                    }
+                }
+            } else {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = BampCardBg),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Automated AI Landmark Overlay",
+                            color = BampSecondary,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Interactive anatomical point detection: Sella, Nasion, A-Point, B-Point, Pogonion, Menton, Gonion, Porion, Orbitale.",
+                            color = BampTextSecondary,
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        )
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
 
-                    LandmarkCanvas(landmarks = landmarks)
+                        LandmarkCanvas(landmarks = landmarks)
+                    }
                 }
             }
 

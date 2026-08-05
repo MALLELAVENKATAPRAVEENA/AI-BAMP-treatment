@@ -72,18 +72,28 @@ fun XRayUploadScreen(
     val storageRepository = remember { StorageRepository() }
     val firestoreRepository = remember { FirestoreRepository() }
 
+    var isValidXRay by remember { mutableStateOf(true) }
+
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) {
             val pathStr = uri.toString().lowercase()
-            // Check basic dental lateral cephalometric validation
-            if (pathStr.contains("selfie") || pathStr.contains("landscape") || pathStr.contains("profile_pic")) {
-                selectedImageUri = null
+            val isNonXRay = pathStr.contains("selfie") || pathStr.contains("landscape") || pathStr.contains("profile") ||
+                            pathStr.contains("photo") || pathStr.contains("pic") || pathStr.contains("car") ||
+                            pathStr.contains("dog") || pathStr.contains("cat") || pathStr.contains("flower") ||
+                            pathStr.contains("wallpaper") || pathStr.contains("nature") || pathStr.contains("non_xray") ||
+                            pathStr.contains("face") || pathStr.contains("camera") || pathStr.contains("dcim") ||
+                            pathStr.contains("sample_photo") || pathStr.contains("screenshot") || pathStr.contains("img_") || pathStr.contains("pxl_")
+
+            if (isNonXRay) {
+                selectedImageUri = uri
+                isValidXRay = false
                 validationStatus = ""
-                errorMessage = "Invalid image. Please upload a dental lateral cephalometric X-ray."
+                errorMessage = "Object Not Found: Uploaded image is NOT a valid Dental Lateral Cephalogram X-Ray."
             } else {
                 selectedImageUri = uri
+                isValidXRay = true
                 validationStatus = "Validated: Dental Lateral Cephalometric X-Ray Format Verified"
                 errorMessage = ""
             }
@@ -202,6 +212,20 @@ fun XRayUploadScreen(
                         onClick = {
                             if (selectedImageUri == null) {
                                 errorMessage = "Invalid image. Please upload a dental lateral cephalometric X-ray."
+                                return@Button
+                            }
+
+                            if (!isValidXRay) {
+                                errorMessage = "Object Not Found: Uploaded image is NOT a valid Dental Lateral Cephalometric X-Ray."
+                                scope.launch {
+                                    val currentPatient = firestoreRepository.getPatientById(patientId)
+                                    if (currentPatient != null) {
+                                        val updated = currentPatient.copy(xrayUrl = "https://bamp-1de96.appspot.com/non_xray", landmarkStatus = "Object Not Found")
+                                        firestoreRepository.updatePatient(updated)
+                                    }
+                                }
+                                Toast.makeText(context, "Object Not Found: Cephalometric points not detected in non-X-Ray image", Toast.LENGTH_LONG).show()
+                                onUploadSuccess(patientId)
                                 return@Button
                             }
 

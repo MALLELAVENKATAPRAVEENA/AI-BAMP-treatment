@@ -96,6 +96,12 @@ fun PredictionResultsScreen(
 
     val recommendation = "Apply 150g-200g intermaxillary Class III elastics between 4 BAMP mini-plates (infrazygomatic crest and mandibular canine region) for 24 hours/day."
 
+    val isNonXRay = currentPatient?.xrayUrl?.contains("non_xray") == true || currentPatient?.landmarkStatus == "Object Not Found"
+
+    val displayScore = if (isNonXRay) "Object Not Found" else "$successScore%"
+    val displayRisk = if (isNonXRay) "Object Not Found (Non-X-Ray Image Uploaded)" else riskCategory
+    val displayRec = if (isNonXRay) "Prediction Halted: Uploaded image is NOT a valid Dental Lateral Cephalometric X-Ray file. Object/Cephalogram points not found." else recommendation
+
     Scaffold(
         topBar = {
             HeaderBar(
@@ -116,7 +122,7 @@ fun PredictionResultsScreen(
         ) {
             // Main Prediction Metric Card
             Card(
-                colors = CardDefaults.cardColors(containerColor = BampCardBg),
+                colors = CardDefaults.cardColors(containerColor = if (isNonXRay) androidx.compose.ui.graphics.Color(0xFF3B1219) else BampCardBg),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -135,14 +141,14 @@ fun PredictionResultsScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = "$successScore%",
-                        color = BampSuccess,
-                        fontSize = 42.sp,
+                        text = displayScore,
+                        color = if (isNonXRay) androidx.compose.ui.graphics.Color.Red else BampSuccess,
+                        fontSize = if (isNonXRay) 28.sp else 42.sp,
                         fontWeight = FontWeight.Bold
                     )
 
                     Text(
-                        text = riskCategory,
+                        text = displayRisk,
                         color = BampTextPrimary,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold
@@ -189,7 +195,7 @@ fun PredictionResultsScreen(
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text("Treatment Recommendation", color = BampSecondary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(6.dp))
-                    Text(recommendation, color = BampTextPrimary, fontSize = 14.sp)
+                    Text(displayRec, color = if (isNonXRay) androidx.compose.ui.graphics.Color.Red else BampTextPrimary, fontSize = 14.sp)
                     Spacer(modifier = Modifier.height(10.dp))
                     Text("Predicted Skeletal & Soft Tissue Changes", color = BampTextPrimary, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(6.dp))
