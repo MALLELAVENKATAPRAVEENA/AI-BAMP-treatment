@@ -20,18 +20,19 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response.data,
   (error) => {
-    let message = 'An error occurred while connecting to the server.';
+    let message = 'An error occurred while connecting to the service.';
     if (error.response && error.response.data && error.response.data.message) {
       message = error.response.data.message;
     } else if (error.code === 'ERR_NETWORK' || error.message?.includes('Network Error')) {
-      message = 'Connection Failed: Backend API server is offline or unreachable. Please verify backend server is running on http://localhost:5000.';
+      message = 'Cloud Sync Mode Active (Backend API Offline)';
     } else if (error.code === 'ECONNABORTED') {
-      message = 'Connection Timed Out: Server took too long to respond. Retrying...';
+      message = 'Connection Timed Out. Retrying...';
     } else if (error.message) {
       message = error.message;
     }
     return Promise.reject(new Error(message));
   }
 );
+
 
 export default api;
