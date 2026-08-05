@@ -127,9 +127,112 @@ fun ReportViewerScreen(
 
                     Button(
                         onClick = {
-                            val dummyPdfUrl = "https://bamp-1de96.web.app"
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(dummyPdfUrl))
-                            context.startActivity(intent)
+                            val pName = patient?.name ?: "Emma Watson"
+                            val pId = patient?.id ?: reportId
+                            val age = patient?.age ?: 10.5
+                            val gender = patient?.gender ?: "Female"
+                            val cvm = patient?.cvmStage ?: "CVM 3"
+                            val score = patient?.latestPredictionScore ?: 89.2
+
+                            // Generate native PDF file using Android PdfDocument API
+                            val pdfDocument = android.graphics.pdf.PdfDocument()
+                            val pageInfo = android.graphics.pdf.PdfDocument.PageInfo.Builder(595, 842, 1).create()
+                            val page = pdfDocument.startPage(pageInfo)
+                            val canvas = page.canvas
+
+                            val paint = android.graphics.Paint()
+                            val titlePaint = android.graphics.Paint()
+
+                            titlePaint.color = android.graphics.Color.parseColor("#0F52BA")
+                            titlePaint.textSize = 20f
+                            titlePaint.isFakeBoldText = true
+
+                            canvas.drawText("BAMP AI CLINICAL OUTCOME REPORT", 40f, 50f, titlePaint)
+
+                            paint.color = android.graphics.Color.DKGRAY
+                            paint.textSize = 11f
+                            val dateStr = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault()).format(java.util.Date())
+                            canvas.drawText("Generated: $dateStr | Synchronized Target (bamp-1de96)", 40f, 72f, paint)
+
+                            paint.color = android.graphics.Color.LTGRAY
+                            canvas.drawLine(40f, 85f, 555f, 85f, paint)
+
+                            // 1. Demographics
+                            paint.color = android.graphics.Color.parseColor("#0F52BA")
+                            paint.textSize = 13f
+                            paint.isFakeBoldText = true
+                            canvas.drawText("1. PATIENT DEMOGRAPHICS & GROWTH PROFILE", 40f, 110f, paint)
+
+                            paint.color = android.graphics.Color.BLACK
+                            paint.textSize = 12f
+                            paint.isFakeBoldText = false
+                            canvas.drawText("Patient Name: $pName", 50f, 132f, paint)
+                            canvas.drawText("Patient ID: $pId", 50f, 152f, paint)
+                            canvas.drawText("Age / Gender: $age yrs / $gender", 50f, 172f, paint)
+                            canvas.drawText("CVM Stage: $cvm (Peak Growth Window)", 50f, 192f, paint)
+
+                            // 2. Cephalometrics
+                            paint.color = android.graphics.Color.parseColor("#0F52BA")
+                            paint.textSize = 13f
+                            paint.isFakeBoldText = true
+                            canvas.drawText("2. CEPHALOMETRIC MEASUREMENTS", 40f, 225f, paint)
+
+                            paint.color = android.graphics.Color.BLACK
+                            paint.textSize = 12f
+                            paint.isFakeBoldText = false
+                            canvas.drawText("• ANB Angle: -2.8° (Class III Skeletal Discrepancy)", 50f, 247f, paint)
+                            canvas.drawText("• Wits Appraisal: -3.5 mm (Linear Discrepancy)", 50f, 267f, paint)
+                            canvas.drawText("• SNA / SNB Angles: 78.2° / 81.0°", 50f, 287f, paint)
+
+                            // 3. AI Prediction
+                            paint.color = android.graphics.Color.parseColor("#0F52BA")
+                            paint.textSize = 13f
+                            paint.isFakeBoldText = true
+                            canvas.drawText("3. AI BAMP PREDICTION RESULTS", 40f, 320f, paint)
+
+                            paint.color = android.graphics.Color.parseColor("#10B981")
+                            paint.textSize = 15f
+                            paint.isFakeBoldText = true
+                            canvas.drawText("Treatment Success Probability: $score%", 50f, 345f, paint)
+
+                            paint.color = android.graphics.Color.BLACK
+                            paint.textSize = 12f
+                            paint.isFakeBoldText = false
+                            canvas.drawText("Risk Classification: Low Relapse Risk (High Favorable Outcome)", 50f, 365f, paint)
+
+                            // 4. Recommendations
+                            paint.color = android.graphics.Color.parseColor("#0F52BA")
+                            paint.textSize = 13f
+                            paint.isFakeBoldText = true
+                            canvas.drawText("4. TREATMENT RECOMMENDATIONS", 40f, 400f, paint)
+
+                            paint.color = android.graphics.Color.BLACK
+                            paint.textSize = 12f
+                            paint.isFakeBoldText = false
+                            canvas.drawText("• Surgical placement of 4 BAMP mini-plates (infrazygomatic crest & mandible).", 50f, 422f, paint)
+                            canvas.drawText("• Apply 150g-250g Class III elastics for 24 hours/day.", 50f, 442f, paint)
+                            canvas.drawText("• Expected Maxillary Advancement: 3.8 mm over 14 Months.", 50f, 462f, paint)
+
+                            paint.color = android.graphics.Color.GRAY
+                            paint.textSize = 10f
+                            canvas.drawText("BAMP AI Predictor • Confidential Healthcare PDF Report", 40f, 800f, paint)
+
+                            pdfDocument.finishPage(page)
+
+                            val downloadsDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS)
+                            val safeName = pName.replace("\\s+".toRegex(), "_")
+                            val pdfFile = java.io.File(downloadsDir, "BAMP_Report_${safeName}_${System.currentTimeMillis().toString().takeLast(5)}.pdf")
+
+                            try {
+                                val fos = java.io.FileOutputStream(pdfFile)
+                                pdfDocument.writeTo(fos)
+                                fos.close()
+                                pdfDocument.close()
+                                android.widget.Toast.makeText(context, "✅ PDF Report saved to Downloads:\n${pdfFile.name}", android.widget.Toast.LENGTH_LONG).show()
+                            } catch (e: Exception) {
+                                pdfDocument.close()
+                                android.widget.Toast.makeText(context, "Error generating PDF: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+                            }
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = BampSecondary),
                         shape = RoundedCornerShape(8.dp),
