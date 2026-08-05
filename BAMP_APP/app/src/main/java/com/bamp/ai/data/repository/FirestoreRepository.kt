@@ -234,6 +234,32 @@ class FirestoreRepository {
         awaitClose { listener.remove() }
     }
 
+    // ================= CHAT MESSAGES =================
+    fun getChatMessagesFlow(): Flow<List<ChatMessage>> = callbackFlow {
+        val listener = db.collection("chat_messages")
+            .orderBy("timestamp", Query.Direction.ASCENDING)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.w(TAG, "getChatMessagesFlow error: ${error.message}")
+                    trySend(emptyList())
+                    return@addSnapshotListener
+                }
+                if (snapshot != null) {
+                    val msgs = snapshot.toObjects(ChatMessage::class.java)
+                    trySend(msgs)
+                }
+            }
+        awaitClose { listener.remove() }
+    }
+
+    suspend fun sendChatMessage(message: ChatMessage) {
+        try {
+            db.collection("chat_messages").document(message.id).set(message).await()
+        } catch (e: Exception) {
+            Log.w(TAG, "sendChatMessage error: ${e.message}")
+        }
+    }
+
     // ================= AUDIT LOGS =================
     private fun logAudit(action: String, description: String) {
         try {

@@ -127,9 +127,11 @@ def validate_cephalometric_xray(image_input) -> dict:
             rejection_reason = "Confidence score below 90% threshold. Please upload a valid Lateral Cephalometric X-Ray."
 
         is_valid = bool(confidence_score >= 90.0 and rejection_reason is None)
+        status_text = "VALID X-RAY" if is_valid else "INVALID IMAGE"
 
         return {
             "isValid": is_valid,
+            "statusText": status_text,
             "confidenceScore": confidence_score,
             "xrayProbability": round(xray_probability, 1),
             "dentalStructurePresence": dental_presence,
@@ -152,6 +154,7 @@ def validate_cephalometric_xray(image_input) -> dict:
 def _build_rejection_response(reason: str) -> dict:
     return {
         "isValid": False,
+        "statusText": "INVALID IMAGE",
         "confidenceScore": 0.0,
         "xrayProbability": 0.0,
         "dentalStructurePresence": False,

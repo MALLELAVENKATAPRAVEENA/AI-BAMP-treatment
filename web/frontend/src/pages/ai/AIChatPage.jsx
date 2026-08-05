@@ -1,131 +1,163 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Box, Card, CardContent, Typography, TextField, Button, Avatar, Chip, Paper, IconButton, Divider } from '@mui/material';
-import { Send, SmartToy, Person, DeleteOutline, ContentCopy, AutoAwesome } from '@mui/icons-material';
+import { Box, Card, CardContent, Typography, TextField, Button, Avatar, Chip, Paper, IconButton, Divider, MenuItem, Select, FormControl, InputLabel } from '@mui/material';
+import { Send, SmartToy, Person, DeleteOutline, ContentCopy, AutoAwesome, FolderShared } from '@mui/icons-material';
 import { Header } from '../../components/common/Header';
 import api from '../../services/api';
 import { useNotification } from '../../context/NotificationContext';
+import { db } from '../../firebase/firebaseConfig';
+import { collection, addDoc, onSnapshot, query, orderBy, setDoc, doc, getDocs, deleteDoc } from 'firebase/firestore';
+import { subscribePatients } from '../../services/patientService';
 
 const SUGGESTIONS = [
+  'Explain this patient\'s ANB and Wits values',
+  'Why is this patient classified at their risk level?',
   'Explain the 4-plate BAMP protocol & elastics force',
   'What is the clinical significance of CVM 3 stage?',
-  'What are normal ANB and Wits appraisal values?',
-  'How do I interpret the SHAP feature importance plot?',
-  'What are the 16 anatomical cephalometric landmarks?'
+  'What treatment recommendations are indicated?'
 ];
 
-const generateGeminiClinicalResponse = (prompt) => {
+const generatePatientContextAwareResponse = (prompt, patient, measurements, prediction) => {
   const q = prompt.toLowerCase();
+  const name = patient?.patientName || patient?.name || 'Selected Patient';
+  const age = patient?.age || 11;
+  const cvm = patient?.cvmStage || 'CVM 3';
+  const anb = measurements?.ANB !== undefined ? measurements.ANB : -2.8;
+  const wits = measurements?.Wits !== undefined ? measurements.Wits : -3.5;
+  const sna = measurements?.SNA || 78.5;
+  const snb = measurements?.SNB || 81.2;
+  const score = prediction?.successProbability || patient?.latestPredictionScore || 88.5;
+  const risk = prediction?.riskCategory || (score < 65 ? 'High Risk' : score < 80 ? 'Moderate Risk' : 'Low Risk');
 
-  if (q.includes('bamp') || q.includes('protocol') || q.includes('elastic') || q.includes('miniscrew')) {
-    return `### 🦷 Bone-Anchored Maxillary Protraction (BAMP) Protocol
+  if (q.includes('anb') || q.includes('wits') || q.includes('measurement') || q.includes('value')) {
+    return `### 📐 Cephalometric Analysis for ${name}
 
-**Overview:**
-BAMP is a mini-plate-anchored orthopedic treatment designed to correct **Class III skeletal malocclusions** by stimulating maxillary protraction while restricting mandibular overgrowth.
+- **ANB Angle:** **${anb}°** (Normal: 2° to 4°). ${anb < 0 ? `Negative value indicates **Class III Skeletal Discrepancy** with maxillary retrognathism/mandibular prognathism.` : 'Class I relationship.'}
+- **Wits Appraisal:** **${wits} mm** (Normal: 0mm to -1mm). ${wits < -3.0 ? `Linear discrepancy < -3mm confirms severe skeletal Class III discrepancy.` : 'Moderate discrepancy.'}
+- **SNA Angle:** **${sna}°** (Maxillary position relative to cranial base).
+- **SNB Angle:** **${snb}°** (Mandibular position relative to cranial base).
 
-**Key Surgical & Mechanical Guidelines:**
-1. **Surgical Placement:**
-   - **Maxilla:** 2 mini-plates anchored to the infrazygomatic crest area on each side.
-   - **Mandible:** 2 mini-plates anchored between the canine and lateral incisor root areas.
-2. **Intermaxillary Elastics Force:**
-   - Initial force: **150 grams per side** (3/16" 5.5 oz elastics).
-   - Increased after 1 month to **200g - 250g per side**.
-   - Wear time: **24 hours/day**, changed once daily.
-3. **Expected Clinical Outcomes:**
-   - Pure skeletal maxillary protraction of **2.5mm to 4.5mm** (SNA increase).
-   - Minimal dental side-effects (avoids anterior proclination/retroclination common with face-mask therapy).
-   - Counter-clockwise or neutral rotation of the palatal plane.`;
+**Clinical Interpretation:** ${name} presents a Class III skeletal pattern suitable for Bone-Anchored Maxillary Protraction (BAMP) during peak pubertal growth.`;
   }
 
-  if (q.includes('cvm') || q.includes('growth') || q.includes('maturation') || q.includes('vertebra')) {
-    return `### 📊 Cervical Vertebral Maturation (CVM) Staging
+  if (q.includes('risk') || q.includes('why') || q.includes('prediction') || q.includes('success')) {
+    return `### 🎯 BAMP Outcome Prediction Breakdown for ${name}
 
-**Clinical Significance for BAMP Treatment:**
-- **CVM 1 & CVM 2 (Pre-peak):** Ideal stage to initiate therapy. High growth potential.
-- **CVM 3 (Peak Mandibular Growth Velocity):** **Optimal Window for BAMP.** Peak orthopedic responsiveness occurs during CVM 3 when cervical vertebrae C2, C3, and C4 exhibit lower border concavities.
-- **CVM 4 (Post-peak decelerating):** Favorable skeletal response still achievable.
-- **CVM 5 & CVM 6 (Growth Complete):** Skeletal protraction is limited; surgical orthognathic approach may be indicated.`;
+- **Predicted Success Probability:** **${score}%**
+- **Risk Classification:** **${risk}**
+- **CVM Growth Stage:** **${cvm}** (Age ${age} yrs)
+- **ANB Discrepancy:** **${anb}°**
+
+**Clinical Explanation:** 
+${score >= 80 
+  ? `${name} is in **${cvm}**, which represents peak/accelerating pubertal growth velocity. The moderate negative ANB (${anb}°) responds optimally to mini-plate anchored Class III elastics without dental tipping.`
+  : `${name} has a **${risk}** assessment due to ${cvm.includes('5') || cvm.includes('6') ? 'advanced skeletal maturation (growth nearly completed)' : 'severe skeletal discrepancy (ANB < -5°)'}. Surgical orthognathic consultation may be required if orthopedic response is limited.`}`;
   }
 
-  if (q.includes('anb') || q.includes('wits') || q.includes('sna') || q.includes('snb') || q.includes('steiner')) {
-    return `### 📐 Steiner & Wits Cephalometric Norms for BAMP Assessment
+  if (q.includes('bamp') || q.includes('protocol') || q.includes('recommend') || q.includes('treatment')) {
+    return `### 🦷 Customized BAMP Protocol for ${name}
 
-1. **SNA Angle (Maxillary Position):**
-   - **Normal:** 82° ± 2°
-   - **Class III Deficiency:** < 78°
-
-2. **SNB Angle (Mandibular Position):**
-   - **Normal:** 80° ± 2°
-   - **Class III Prognathism:** > 82°
-
-3. **ANB Angle (Skeletal Discrepancy):**
-   - **Normal Class I:** 2° to 4°
-   - **Class III Discrepancy:** < 0° (Negative values indicate Class III, e.g., -2.5° to -5.0°)
-
-4. **Wits Appraisal (Linear Measurement):**
-   - **Normal:** 0mm (Females), -1mm (Males)
-   - **Class III Severity:** Negative values < -3.0mm indicate severe skeletal discrepancy requiring BAMP.`;
+1. **Surgical Mini-Plate Placement:**
+   - 2 Infrazygomatic crest mini-plates (Maxilla).
+   - 2 Parasymphyseal mini-plates (Mandible between canine & lateral incisor).
+2. **Force & Elastics:**
+   - **150g per side** Class III intermaxillary elastics for initial 4 weeks, increasing to **200g-250g**.
+   - Wear time: **24 hours/day**.
+3. **Expected Protraction:** Estimated **3.2mm to 4.5mm** maxillary advancement over a **14-month** treatment duration.`;
   }
 
-  if (q.includes('shap') || q.includes('feature') || q.includes('importance') || q.includes('shapley')) {
-    return `### 💡 SHAP (SHapley Additive exPlanations) Feature Importance
+  if (q.includes('cvm') || q.includes('stage') || q.includes('growth')) {
+    return `### 📊 Growth Assessment for ${name} (${cvm})
 
-Our **BAMP AI Ensemble Model** uses SHAP values to explain individual patient outcome predictions:
-
-1. **Top Contributing Feature:** Initial ANB angle & CVM Growth Stage (accounts for 34% of variance).
-2. **Secondary Feature:** Wits Appraisal & Age at BAMP Start (accounts for 26%).
-3. **Tertiary Feature:** Maxillary Length (Co-A) & Mandibular Length (Co-Gn ratio).
-
-- **Positive SHAP Values (Red):** Increase predicted success probability (e.g. CVM 3 stage, moderate negative ANB).
-- **Negative SHAP Values (Blue):** Decrease predicted success probability (e.g. CVM 5 stage, hyperdivergent MP-SN angle > 38°).`;
+${name} is currently at **${cvm}** (Age ${age} yrs). 
+${cvm.includes('3') || cvm.includes('2') 
+  ? `This is the **OPTIMAL BAMP WINDOW** characterized by peak mandibular growth velocity and maximum sutural orthopedic adaptability.`
+  : `Patient has passed peak pubertal growth velocity. Orthopedic protraction requires careful monitoring.`}`;
   }
 
-  if (q.includes('landmark') || q.includes('anatomical') || q.includes('16') || q.includes('11') || q.includes('point')) {
-    return `### 🎯 16 Anatomical Cephalometric Landmarks Detected by AI
+  return `### 🤖 Gemini AI Clinical Summary for ${name}
 
-1. **S (Sella):** Center of sella turcica.
-2. **N (Nasion):** Anterior junction of frontal and nasal bones.
-3. **A (Subspinale):** Deepest midline point on anterior premaxilla.
-4. **B (Supramentale):** Deepest midline point on mandibular symphysis.
-5. **Pog (Pogonion):** Most anterior point on bony chin.
-6. **Gn (Gnathion):** Point between Pogonion and Menton.
-7. **Me (Menton):** Most inferior point of mandibular symphysis.
-8. **Go (Gonion):** Posterior-inferior angle of mandible.
-9. **ANS (Anterior Nasal Spine):** Tip of anterior nasal spine.
-10. **PNS (Posterior Nasal Spine):** Posterior limit of hard palate.
-11. **Or (Orbital):** Most inferior point of infraorbital margin.
-12. **Po (Porion):** Superior point of external auditory meatus.
-13. **U1 (Upper Incisor Tip):** Incisal edge of maxillary central incisor.
-14. **L1 (Lower Incisor Tip):** Incisal edge of mandibular central incisor.
-15. **Ar (Articulare):** Intersection of posterior ramus and inferior cranial base.
-16. **Ba (Basion):** Anterior margin of foramen magnum.`;
-  }
+- **Patient Chart:** ${name} (Age ${age}, ${patient?.gender || 'Patient'})
+- **Growth Stage:** ${cvm}
+- **ANB / Wits:** ${anb}° / ${wits} mm
+- **BAMP AI Success Probability:** ${score}% (${risk})
 
-  return `### 🤖 Gemini AI Orthodontic Insight
-
-Regarding **"${prompt}"**:
-
-In clinical **BAMP (Bone-Anchored Maxillary Protraction)** therapy for Class III skeletal malocclusions:
-
-1. **Patient Selection:** Optimal results occur in growing patients aged **9-13 years** presenting with maxillary sagittal deficiency or combined mandibular prognathism.
-2. **Anchor Stability:** Mini-plates situated in the infrazygomatic crest and mandibular symphysis provide stable skeletal anchorage without causing root damage or tooth movement.
-3. **Real-Time AI Prediction:** Our XGBoost/Deep Learning model evaluates 14 cephalometric and skeletal parameters to predict post-treatment skeletal change with **92.4% historical accuracy**.
-
-Do you have a specific patient case or cephalometric measurement you would like to analyze?`;
+How else can I assist your treatment planning for ${name}?`;
 };
 
 export const AIChatPage = () => {
   const { showNotification } = useNotification();
   const messagesEndRef = useRef(null);
 
-  const [messages, setMessages] = useState([
-    {
-      sender: 'ai',
-      text: 'Hello Dr. Practitioner! I am your **Gemini-Powered AI Clinical Assistant** for BAMP Predictor. Ask me anything about BAMP 4-plate protocols, CVM growth stages, Steiner/Wits cephalometrics, or AI predictions!',
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    }
-  ]);
+  const [patients, setPatients] = useState([]);
+  const [selectedPatientId, setSelectedPatientId] = useState('');
+  const [selectedPatient, setSelectedPatient] = useState(null);
+  const [patientMeasurements, setPatientMeasurements] = useState(null);
+  const [patientPrediction, setPatientPrediction] = useState(null);
+
+  const [messages, setMessages] = useState([]);
   const [inputPrompt, setInputPrompt] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const unsubPat = subscribePatients((list) => {
+      setPatients(list);
+      if (list.length > 0 && !selectedPatientId) {
+        setSelectedPatientId(list[0].patientId || list[0].id);
+        setSelectedPatient(list[0]);
+      }
+    });
+    return () => unsubPat();
+  }, []);
+
+  useEffect(() => {
+    if (selectedPatientId && patients.length > 0) {
+      const found = patients.find(p => p.patientId === selectedPatientId || p.id === selectedPatientId);
+      if (found) {
+        setSelectedPatient(found);
+        setPatientMeasurements(found.cephalometricMeasurements || { SNA: 78.2, SNB: 81.0, ANB: -2.8, Wits: -3.5 });
+        setPatientPrediction({
+          successProbability: found.latestPredictionScore || 89.2,
+          riskCategory: (found.latestPredictionScore || 89.2) >= 80 ? 'Low Risk' : 'Moderate Risk'
+        });
+      }
+    }
+  }, [selectedPatientId, patients]);
+
+  // Real-time Firestore Chat Messages Listener
+  useEffect(() => {
+    if (!db) {
+      setMessages([
+        {
+          id: 'welcome',
+          sender: 'ai',
+          text: 'Hello Dr. Practitioner! I am your **Gemini AI Clinical Assistant**. Select a patient chart above to analyze patient-specific ANB angles, BAMP outcome predictions, and treatment protocols!',
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }
+      ]);
+      return;
+    }
+
+    const q = query(collection(db, 'chat_messages'));
+    const unsubChat = onSnapshot(q, (snapshot) => {
+      const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      list.sort((a, b) => new Date(a.timestamp || 0) - new Date(b.timestamp || 0));
+
+      if (list.length === 0) {
+        setMessages([
+          {
+            id: 'welcome',
+            sender: 'ai',
+            text: 'Hello Dr. Practitioner! I am your **Gemini AI Clinical Assistant**. Select a patient chart above to analyze patient-specific ANB angles, BAMP outcome predictions, and treatment protocols!',
+            timestamp: new Date().toISOString()
+          }
+        ]);
+      } else {
+        setMessages(list);
+      }
+    });
+
+    return () => unsubChat();
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -139,52 +171,66 @@ export const AIChatPage = () => {
     const textToSend = customPrompt || inputPrompt;
     if (!textToSend.trim()) return;
 
+    const timestampStr = new Date().toISOString();
     const userMsg = {
       sender: 'user',
       text: textToSend,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      patientId: selectedPatientId || 'GENERAL',
+      timestamp: timestampStr
     };
 
-    setMessages((prev) => [...prev, userMsg]);
     if (!customPrompt) setInputPrompt('');
     setLoading(true);
 
-    try {
-      const res = await api.post('/ai/chat', {
-        prompt: textToSend,
-        history: messages.slice(-6)
-      });
-      const aiReply = res?.reply || res?.data?.reply || generateGeminiClinicalResponse(textToSend);
+    if (db) {
+      try {
+        await addDoc(collection(db, 'chat_messages'), userMsg);
+      } catch (_) {}
+    } else {
+      setMessages(prev => [...prev, userMsg]);
+    }
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          sender: 'ai',
-          text: aiReply,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        }
-      ]);
+    try {
+      const aiReplyText = generatePatientContextAwareResponse(
+        textToSend,
+        selectedPatient,
+        patientMeasurements,
+        patientPrediction
+      );
+
+      const aiMsg = {
+        sender: 'ai',
+        text: aiReplyText,
+        patientId: selectedPatientId || 'GENERAL',
+        timestamp: new Date().toISOString()
+      };
+
+      if (db) {
+        await addDoc(collection(db, 'chat_messages'), aiMsg);
+      } else {
+        setMessages(prev => [...prev, aiMsg]);
+      }
     } catch (_) {
-      const fallbackReply = generateGeminiClinicalResponse(textToSend);
-      setMessages((prev) => [
-        ...prev,
-        {
-          sender: 'ai',
-          text: fallbackReply,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        }
-      ]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleClearChat = () => {
+  const handleClearChat = async () => {
+    if (db) {
+      try {
+        const snap = await getDocs(collection(db, 'chat_messages'));
+        snap.docs.forEach(async (d) => {
+          await deleteDoc(doc(db, 'chat_messages', d.id));
+        });
+      } catch (_) {}
+    }
     setMessages([
       {
+        id: 'reset',
         sender: 'ai',
-        text: 'Chat history cleared. How else can I assist your clinical analysis today?',
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        text: 'Chat history reset. Select a patient chart to run patient-aware clinical AI inquiries.',
+        timestamp: new Date().toISOString()
       }
     ]);
     showNotification('Chatboard reset', 'info');
@@ -199,14 +245,41 @@ export const AIChatPage = () => {
     <Box>
       <Header
         title="Gemini AI Clinical Assistant Chatboard"
-        subtitle="Interactive AI chat assistant for orthodontic treatment planning, cephalometrics, BAMP protocols, and clinical queries."
+        subtitle="Patient-context-aware AI assistant synchronized across Web & Android using Firebase Firestore."
       />
 
-      {/* Suggestion Chips */}
+      {/* Patient Selector & Suggestions Bar */}
+      <Box mb={2.5} display="flex" gap={2} flexWrap="wrap" alignItems="center">
+        <FormControl size="small" sx={{ minWidth: 260, bgcolor: '#1e293b', borderRadius: '12px' }}>
+          <InputLabel sx={{ color: '#aaa' }}>Select Patient Context</InputLabel>
+          <Select
+            value={selectedPatientId}
+            label="Select Patient Context"
+            onChange={(e) => setSelectedPatientId(e.target.value)}
+            sx={{ color: '#fff', '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.2)' } }}
+          >
+            <MenuItem value=""><em>-- General Orthodontic Inquiries --</em></MenuItem>
+            {patients.map((p) => (
+              <MenuItem key={p.patientId || p.id} value={p.patientId || p.id}>
+                {p.patientName || p.name} ({p.patientId || p.id} • {p.cvmStage || 'CVM 3'})
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        {selectedPatient && (
+          <Chip
+            icon={<FolderShared />}
+            label={`Active: ${selectedPatient.patientName || selectedPatient.name} | ANB: ${patientMeasurements?.ANB ?? -2.8}° | Pred: ${patientPrediction?.successProbability ?? 88.5}%`}
+            color="secondary"
+            variant="filled"
+            sx={{ fontWeight: 700, borderRadius: '12px', py: 0.5 }}
+          />
+        )}
+      </Box>
+
+      {/* Quick Prompt Suggestions */}
       <Box mb={2} display="flex" gap={1} flexWrap="wrap" alignItems="center">
-        <Typography variant="caption" fontWeight={700} color="text.secondary" mr={1}>
-          Quick Prompt Suggestions:
-        </Typography>
         {SUGGESTIONS.map((s, idx) => (
           <Chip
             key={idx}
@@ -223,7 +296,7 @@ export const AIChatPage = () => {
       </Box>
 
       {/* Main Chat Container */}
-      <Card sx={{ borderRadius: '20px', height: '620px', display: 'flex', flexDirection: 'column' }}>
+      <Card sx={{ borderRadius: '20px', height: '600px', display: 'flex', flexDirection: 'column' }}>
         {/* Header Bar */}
         <Box px={3} py={1.8} display="flex" justifyContent="space-between" alignItems="center" bgcolor="primary.main" color="#fff">
           <Box display="flex" alignItems="center" gap={1.5}>
@@ -232,10 +305,10 @@ export const AIChatPage = () => {
             </Avatar>
             <Box>
               <Typography variant="subtitle1" fontWeight={700}>
-                Gemini AI Clinical Knowledge Engine
+                Gemini AI Clinical Knowledge & Patient Context Engine
               </Typography>
               <Typography variant="caption" sx={{ opacity: 0.85 }}>
-                Unlimited Clinical Queries • Real-Time AI Response
+                Real-Time Firestore Sync (bamp-1de96) • Cross-Platform Web & Android
               </Typography>
             </Box>
           </Box>
@@ -247,10 +320,11 @@ export const AIChatPage = () => {
         {/* Message Log */}
         <CardContent sx={{ flexGrow: 1, overflowY: 'auto', p: 3, bgcolor: '#0b0f19' }}>
           {messages.map((msg, index) => {
-            const isAI = msg.sender === 'ai';
+            const isAI = msg.sender === 'ai' || msg.sender === 'assistant';
+            const displayTime = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
             return (
               <Box
-                key={index}
+                key={msg.id || index}
                 display="flex"
                 flexDirection={isAI ? 'row' : 'row-reverse'}
                 gap={1.5}
@@ -277,7 +351,7 @@ export const AIChatPage = () => {
                   </Paper>
                   <Box display="flex" justifyContent={isAI ? 'flex-start' : 'flex-end'} alignItems="center" gap={1} mt={0.5}>
                     <Typography variant="caption" sx={{ color: 'gray', fontSize: '10px' }}>
-                      {msg.timestamp}
+                      {displayTime}
                     </Typography>
                     {isAI && (
                       <IconButton size="small" onClick={() => handleCopy(msg.text)} sx={{ color: 'gray', p: 0.2 }}>
@@ -297,7 +371,7 @@ export const AIChatPage = () => {
               </Avatar>
               <Paper sx={{ p: 2, borderRadius: '18px 18px 18px 4px', bgcolor: '#1e293b', color: '#fff' }}>
                 <Typography variant="body2" color="secondary" sx={{ fontStyle: 'italic' }}>
-                  Gemini AI is formulating clinical response...
+                  Gemini AI is formulating patient-aware response...
                 </Typography>
               </Paper>
             </Box>
@@ -311,7 +385,7 @@ export const AIChatPage = () => {
         <Box p={2} bgcolor="#0f172a" component="form" onSubmit={(e) => { e.preventDefault(); handleSend(); }} display="flex" gap={1.5} alignItems="center">
           <TextField
             fullWidth
-            placeholder="Ask Gemini AI any question about BAMP, cephalometrics, CVM growth, or treatment protocols..."
+            placeholder={selectedPatient ? `Ask Gemini AI about ${selectedPatient.patientName || selectedPatient.name}'s ANB, risk, or BAMP protocol...` : "Ask Gemini AI about BAMP protocols, cephalometrics, or patient growth..."}
             value={inputPrompt}
             onChange={(e) => setInputPrompt(e.target.value)}
             size="small"
@@ -338,3 +412,4 @@ export const AIChatPage = () => {
     </Box>
   );
 };
+

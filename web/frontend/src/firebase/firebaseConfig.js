@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const envApiKey = import.meta.env.VITE_FIREBASE_API_KEY || "";
@@ -36,6 +36,9 @@ try {
   auth = getAuth(app);
   db = getFirestore(app);
   storage = getStorage(app);
+  enableIndexedDbPersistence(db).catch((pErr) => {
+    console.info('[Firebase Offline Persistence] Info/Notice:', pErr.code);
+  });
 } catch (err) {
   console.warn('[Firebase SDK Notice] Web Firebase SDK initialization note:', err.message);
 }

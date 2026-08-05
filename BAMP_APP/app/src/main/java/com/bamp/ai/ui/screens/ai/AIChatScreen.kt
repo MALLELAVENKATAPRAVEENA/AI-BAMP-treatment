@@ -24,6 +24,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -35,31 +36,42 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bamp.ai.data.model.ChatMessage
+import com.bamp.ai.data.repository.FirestoreRepository
 import com.bamp.ai.ui.components.HeaderBar
 import com.bamp.ai.ui.theme.BampBackground
 import com.bamp.ai.ui.theme.BampCardBg
 import com.bamp.ai.ui.theme.BampSecondary
 import com.bamp.ai.ui.theme.BampTextPrimary
 import com.bamp.ai.ui.theme.BampTextSecondary
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @Composable
 fun AIChatScreen(
-    onMenuClick: () -> Unit,
-    onNavigateNotifications: () -> Unit,
-    onNavigateProfile: () -> Unit
+    onMenuClick: () -> Unit = {},
+    onNavigateNotifications: () -> Unit = {},
+    onNavigateProfile: () -> Unit = {}
 ) {
-    val messages = remember {
-        mutableStateListOf(
-            ChatMessage(
-                sender = "assistant",
-                text = "Hello Dr.! I am your BAMP AI Clinical Assistant. Ask me anything regarding Bone-Anchored Maxillary Protraction protocols, cephalometric angles, mini-plate placements, or patient outcome predictions."
-            )
-        )
-    }
-
+    val firestoreRepository = remember { FirestoreRepository() }
+    val messages = remember { mutableStateListOf<ChatMessage>() }
     var inputText by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        firestoreRepository.getChatMessagesFlow().collectLatest { list ->
+            messages.clear()
+            if (list.isEmpty()) {
+                messages.add(
+                    ChatMessage(
+                        sender = "assistant",
+                        text = "Hello Dr.! I am your BAMP AI Clinical Assistant. Ask me anything regarding Bone-Anchored Maxillary Protraction protocols, cephalometric angles, mini-plate placements, or patient outcome predictions."
+                    )
+                )
+            } else {
+                messages.addAll(list)
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -114,22 +126,25 @@ fun AIChatScreen(
                 IconButton(
                     onClick = {
                         if (inputText.isNotBlank()) {
-                            val userMsg = inputText.trim()
-                            messages.add(ChatMessage(sender = "user", text = userMsg))
+                            val userText = inputText.trim()
                             inputText = ""
+                            val userMsg = ChatMessage(sender = "user", text = userText)
 
                             scope.launch {
-                                val reply = when {
-                                    userMsg.contains("mini-plate", ignoreCase = true) || userMsg.contains("plate", ignoreCase = true) ->
-                                        "BAMP mini-plates are typically surgical placed at the infrazygomatic crest of the maxilla and anterior mandibles between canine and lateral incisor."
-                                    userMsg.contains("force", ignoreCase = true) || userMsg.contains("elastics", ignoreCase = true) ->
+                                firestoreRepository.sendChatMessage(userMsg)
+
+                                val replyText = when {
+                                    userText.contains("mini-plate", ignoreCase = true) || userText.contains("plate", ignoreCase = true) ->
+                                        "BAMP mini-plates are surgically placed at the infrazygomatic crest of the maxilla and anterior mandible between canine and lateral incisor."
+                                    userText.contains("force", ignoreCase = true) || userText.contains("elastic", ignoreCase = true) ->
                                         "Intermaxillary elastics deliver approximately 150g to 250g of continuous force per side for orthopedic protraction."
-                                    userMsg.contains("age", ignoreCase = true) || userMsg.contains("timing", ignoreCase = true) ->
-                                        "Optimal BAMP treatment age ranges between 9 to 14 years old during active pubertal growth periods."
+                                    userText.contains("anb", ignoreCase = true) || userText.contains("wits", ignoreCase = true) ->
+                                        "Normal ANB angle is 2° to 4°. Negative ANB (<0°) and Wits (< -3mm) indicate Class III skeletal discrepancy suitable for BAMP."
                                     else ->
-                                        "In Class III malocclusions treated with BAMP, orthopedic maxillary protraction achieves significant anterior movement while avoiding undesirable dental tipping."
+                                        "In Class III malocclusions treated with BAMP, orthopedic maxillary protraction achieves 2.5mm to 4.5mm anterior advancement while avoiding dental tipping."
                                 }
-                                messages.add(ChatMessage(sender = "assistant", text = reply))
+                                val aiMsg = ChatMessage(sender = "assistant", text = replyText)
+                                firestoreRepository.sendChatMessage(aiMsg)
                             }
                         }
                     }
