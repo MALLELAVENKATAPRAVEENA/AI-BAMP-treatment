@@ -1,30 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Grid, Typography, Button, IconButton, Card, Table, TableHead, TableRow, TableCell, TableBody, Chip } from '@mui/material';
+import { Box, Grid, Typography, Button, Card, Table, TableHead, TableRow, TableCell, TableBody, Chip } from '@mui/material';
 import {
-  People, PersonAdd, Insights, CheckCircle, Warning, ErrorOutline,
-  CloudUpload, Description, Refresh, FolderOff
+  People, PersonAdd, Insights, CheckCircle, Description, FolderOff
 } from '@mui/icons-material';
 import { Header } from '../../components/common/Header';
 import { StatCard } from '../../components/common/StatCard';
-import { getDashboardStats } from '../../services/aiService';
 import { getPatients } from '../../services/patientService';
 import { db } from '../../firebase/firebaseConfig';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
 export const OrthodontistDashboard = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
 
   const [widgets, setWidgets] = useState({
     totalPatients: 0,
-    newPatientsThisMonth: 0,
     predictionCount: 0,
-    successfulCases: 0,
-    moderateRiskCases: 0,
-    highRiskCases: 0,
-    uploadedXrays: 0,
-    reportsGenerated: 0
+    reportsGenerated: 0,
+    activeCases: 0
   });
 
   const [recentPatients, setRecentPatients] = useState([]);
@@ -34,17 +27,18 @@ export const OrthodontistDashboard = () => {
     getPatients().then((res) => {
       if (res?.data && res.data.length > 0) {
         setRecentPatients(res.data);
+        const activeCount = res.data.filter(p => p.status !== 'Inactive' && p.status !== 'Archived').length;
         setWidgets(prev => ({
           ...prev,
           totalPatients: res.data.length,
-          newPatientsThisMonth: res.data.length
+          activeCases: activeCount || res.data.length
         }));
       }
     }).catch(err => console.warn('Dashboard initial fetch notice:', err));
 
     if (!db) return;
 
-    // Real-time Firestore Listeners with Console Debug Logging
+    // Real-time Firestore Listeners
     const unsubPatients = onSnapshot(collection(db, 'patients'), (snap) => {
       const patientList = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       console.log('[Firestore Dashboard Debug] Collection: patients, Total Documents Loaded:', patientList.length);
@@ -61,35 +55,21 @@ export const OrthodontistDashboard = () => {
         return getTime(b.createdAt || b.timestamp) - getTime(a.createdAt || a.timestamp);
       });
 
+      const activeCount = patientList.filter(p => p.status !== 'Inactive' && p.status !== 'Archived').length;
+
       setRecentPatients(sorted);
       setWidgets(prev => ({
         ...prev,
         totalPatients: patientList.length,
-        newPatientsThisMonth: patientList.length
+        activeCases: activeCount || patientList.length
       }));
     });
 
     const unsubPredictions = onSnapshot(collection(db, 'predictions'), (snap) => {
-      const predList = snap.docs.map(doc => doc.data());
-      console.log('[Firestore Dashboard Debug] Collection: predictions, Total Documents Loaded:', predList.length);
-
-      let high = 0;
-      let mod = 0;
-      let low = 0;
-
-      predList.forEach(p => {
-        const score = p.successProbability || p.score || 85;
-        if (score >= 85) high++;
-        else if (score >= 70) mod++;
-        else low++;
-      });
-
+      console.log('[Firestore Dashboard Debug] Collection: predictions, Total Documents Loaded:', snap.docs.length);
       setWidgets(prev => ({
         ...prev,
-        predictionCount: predList.length,
-        successfulCases: high,
-        moderateRiskCases: mod,
-        highRiskCases: low
+        predictionCount: snap.docs.length
       }));
     });
 
@@ -101,19 +81,10 @@ export const OrthodontistDashboard = () => {
       }));
     });
 
-    const unsubXrays = onSnapshot(collection(db, 'patient_xrays'), (snap) => {
-      console.log('[Firestore Dashboard Debug] Collection: patient_xrays, Total Documents Loaded:', snap.docs.length);
-      setWidgets(prev => ({
-        ...prev,
-        uploadedXrays: snap.docs.length
-      }));
-    });
-
     return () => {
       unsubPatients();
       unsubPredictions();
       unsubReports();
-      unsubXrays();
     };
   }, []);
 
@@ -148,29 +119,19 @@ export const OrthodontistDashboard = () => {
         }
       />
 
-      {/* Dashboard Stat Cards */}
+      {/* Dashboard Stat Cards: Total Patients, AI Predictions, PDF Reports, Active Cases */}
       <Grid container spacing={2.5} mb={4}>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard title="Total Patients" value={widgets.totalPatients} icon={<People />} color="#0f52ba" subtitle="Live Registered Cases" />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <StatCard title="Total Predictions" value={widgets.predictionCount} icon={<Insights />} color="#8b5cf6" subtitle="AI Inference Runs" />
+          <StatCard title="AI Predictions" value={widgets.predictionCount} icon={<Insights />} color="#8b5cf6" subtitle="AI Inference Runs" />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <StatCard title="Successful Cases" value={widgets.successfulCases} icon={<CheckCircle />} color="#10b981" subtitle=">85% Success Rate" />
+          <StatCard title="PDF Reports" value={widgets.reportsGenerated} icon={<Description />} color="#6366f1" subtitle="Clinical PDFs Generated" />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <StatCard title="Uploaded X-Rays" value={widgets.uploadedXrays} icon={<CloudUpload />} color="#0284c7" subtitle="Lateral Cephalograms" />
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={4}>
-          <StatCard title="Moderate Risk Cases" value={widgets.moderateRiskCases} icon={<Warning />} color="#f59e0b" subtitle="70-85% Success Rate" />
-        </Grid>
-        <Grid item xs={12} sm={6} md={4}>
-          <StatCard title="High Risk Cases" value={widgets.highRiskCases} icon={<ErrorOutline />} color="#ef4444" subtitle="<70% Success Rate" />
-        </Grid>
-        <Grid item xs={12} sm={6} md={4}>
-          <StatCard title="Total Reports" value={widgets.reportsGenerated} icon={<Description />} color="#6366f1" subtitle="Clinical PDFs Generated" />
+          <StatCard title="Active Cases" value={widgets.activeCases} icon={<CheckCircle />} color="#10b981" subtitle="Live Active BAMP Cases" />
         </Grid>
       </Grid>
 
