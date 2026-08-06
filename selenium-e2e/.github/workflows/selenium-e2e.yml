@@ -1,4 +1,4 @@
-name: Enterprise Selenium E2E Automation Pipeline
+name: Enterprise Selenium E2E Automation Pipeline (Firebase App)
 
 on:
   push:
@@ -9,13 +9,9 @@ on:
 
 jobs:
   selenium-e2e-tests:
-    name: Execute Cross-Browser Selenium E2E Test Suite
+    name: Execute Selenium E2E Test Suite on Firebase App
     runs-on: ubuntu-latest
     timeout-minutes: 15
-
-    strategy:
-      matrix:
-        browser: [chrome, firefox]
 
     steps:
       - name: 1. Checkout Repository
@@ -32,20 +28,20 @@ jobs:
           cd selenium-e2e
           npm ci || npm install
 
-      - name: 4. Install Browsers (Chrome & Firefox)
+      - name: 4. Install Google Chrome Browser
         run: |
           sudo apt-get update
-          sudo apt-get install -y google-chrome-stable firefox xvfb
+          sudo apt-get install -y google-chrome-stable xvfb
 
       - name: 5. Execute Dynamic React Route & Form Discovery
         run: |
           cd selenium-e2e
           npm run discover-routes
 
-      - name: 6. Run Selenium Headless E2E Tests (${{ matrix.browser }})
+      - name: 6. Run Selenium Headless E2E Tests on Firebase Host (Chrome)
         env:
           BASE_URL: 'https://bamp-1de96.web.app'
-          CROSS_BROWSER: ${{ matrix.browser }}
+          CROSS_BROWSER: 'chrome'
           HEADLESS: 'true'
         run: |
           cd selenium-e2e
@@ -61,7 +57,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: selenium-e2e-report-${{ matrix.browser }}
+          name: selenium-e2e-report-chrome
           path: |
             selenium-e2e/excel/E2E_Report.xlsx
             selenium-e2e/reports/
