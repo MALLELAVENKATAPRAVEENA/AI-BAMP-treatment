@@ -44,7 +44,9 @@ class LoginPage extends BasePage {
   }
 
   async isLoggedIn() {
-    return await this.isElementDisplayed(this.userAvatar) || (await this.getCurrentUrl()).includes('/dashboard');
+    await this.driver.sleep(1500);
+    const url = await this.getCurrentUrl();
+    return url.includes('/dashboard') || await this.isElementDisplayed(this.userAvatar);
   }
 
   async logout() {
