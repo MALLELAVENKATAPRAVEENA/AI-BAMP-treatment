@@ -32,6 +32,10 @@ class ExcelReporter {
     return null;
   }
 
+  static async generateFinalReport(loadResult = null) {
+    return await this.generateReport(loadResult);
+  }
+
   static async generateReport(loadResult = null) {
     try {
       if (!fs.existsSync(config.paths.excel)) {
