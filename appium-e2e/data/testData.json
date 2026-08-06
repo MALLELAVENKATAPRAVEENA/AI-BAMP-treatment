@@ -1,0 +1,20 @@
+{
+  "auth": {
+    "validUser": {
+      "email": "ortho.doctor@bamp.com",
+      "password": "Password123!"
+    },
+    "invalidUser": {
+      "email": "invalid@bamp.com",
+      "password": "WrongPassword!"
+    }
+  },
+  "patientForm": {
+    "validPatient": {
+      "name": "Appium Test Patient Alpha",
+      "age": "12",
+      "gender": "Male",
+      "malocclusionType": "Skeletal Class II"
+    }
+  }
+}

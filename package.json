@@ -12,7 +12,10 @@
     "test:chrome": "npm --prefix selenium-e2e run test:chrome",
     "test:firefox": "npm --prefix selenium-e2e run test:firefox",
     "test:edge": "npm --prefix selenium-e2e run test:edge",
-    "report:excel": "npm --prefix selenium-e2e run report:excel"
+    "report:excel": "npm --prefix selenium-e2e run report:excel",
+    "mobile:discover-routes": "npm --prefix appium-e2e run discover-routes",
+    "mobile:test": "npm --prefix appium-e2e run test",
+    "mobile:report:excel": "npm --prefix appium-e2e run report:excel"
   },
   "dependencies": {
     "firebase": "^12.16.0",

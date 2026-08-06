@@ -1,0 +1,21 @@
+==================================================
+MOBILE FAILURE DETAILS LOG
+==================================================
+Test Scenario: TC_MOB_AUTH_01: Should navigate to Login Screen and verify elements
+Module: Mobile Authentication Test Suite
+Timestamp: 2026-08-06T05:21:12.042Z
+Device: Android_Emulator
+Android Version: 13.0
+Activity Name: com.bamp.ai.MainActivity
+Screenshot Path: C:\Users\venka\OneDrive\Desktop\AI BAMP TREAMENT\appium-e2e\reports\failures\FAIL_TC_MOB_AUTH_01__Should_navigate_to_Login_Screen_and_verify_elements_2026-08-06T05-21-12-037Z.png
+--------------------------------------------------
+FAILURE REASON:
+expected false to be true
+--------------------------------------------------
+STACK TRACE:
+AssertionError: expected false to be true
+    at Context.<anonymous> (tests\auth.test.js:19:30)
+--------------------------------------------------
+ADB LOGCAT LOGS:
+[INFO] Logcat message
+==================================================
