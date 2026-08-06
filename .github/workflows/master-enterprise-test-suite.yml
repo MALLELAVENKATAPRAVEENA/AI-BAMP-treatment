@@ -1,0 +1,235 @@
+name: Master Enterprise Test Suite Pipeline (4 Frameworks & 4 Excel Reports)
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  # =========================================================================
+  # 1. Selenium Web E2E Automation Suite (300+ Specs)
+  # =========================================================================
+  selenium-e2e-suite:
+    name: 🌐 1. Selenium E2E Web Suite (300+ Specs)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: 'selenium-e2e/package-lock.json'
+
+      - name: Install Selenium Dependencies
+        run: |
+          cd selenium-e2e
+          npm ci || npm install
+
+      - name: Verify Google Chrome Browser
+        run: |
+          google-chrome --version || (sudo apt-get update && sudo apt-get install -y google-chrome-stable)
+
+      - name: Discover React Routes & Generate 300 Specs
+        run: |
+          cd selenium-e2e
+          npm run discover-routes
+
+      - name: Execute Selenium E2E Test Suite
+        env:
+          BASE_URL: 'https://bamp-1de96.web.app'
+          CROSS_BROWSER: 'chrome'
+          HEADLESS: 'true'
+        run: |
+          cd selenium-e2e
+          npm run test
+
+      - name: Generate E2E Excel & HTML Reports
+        if: always()
+        run: |
+          cd selenium-e2e
+          npm run report:excel
+
+      - name: Upload Downloadable Artifact -> Selenium E2E Report.xlsx
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Selenium-E2E-Downloadable-Excel-Report
+          path: |
+            selenium-e2e/excel/
+            selenium-e2e/reports/
+            selenium-e2e/logs/
+          if-no-files-found: warn
+          retention-days: 30
+
+  # =========================================================================
+  # 2. Appium Mobile E2E Automation Suite (300+ Mobile Specs)
+  # =========================================================================
+  appium-mobile-e2e-suite:
+    name: 📱 2. Appium Mobile E2E Suite (300+ Specs)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: 'appium-e2e/package-lock.json'
+
+      - name: Setup Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install Appium 2.x & UiAutomator2 Driver
+        run: |
+          npm install -g appium
+          appium driver install uiautomator2 || true
+          appium -v
+
+      - name: Install Appium Dependencies
+        run: |
+          cd appium-e2e
+          npm ci || npm install
+
+      - name: Discover Mobile Screens & Generate 300 Specs
+        run: |
+          cd appium-e2e
+          npm run discover-routes
+
+      - name: Execute Appium Mobile E2E Test Suite
+        env:
+          APP_PACKAGE: 'com.bamp.ai'
+          APP_ACTIVITY: 'com.bamp.ai.MainActivity'
+        run: |
+          cd appium-e2e
+          npm run test
+
+      - name: Generate Mobile Excel & HTML Reports
+        if: always()
+        run: |
+          cd appium-e2e
+          npm run report:excel
+
+      - name: Upload Downloadable Artifact -> Mobile E2E Report.xlsx
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Appium-Mobile-Downloadable-Excel-Report
+          path: |
+            appium-e2e/excel/
+            appium-e2e/reports/
+            appium-e2e/logs/
+          if-no-files-found: warn
+          retention-days: 30
+
+  # =========================================================================
+  # 3. High-Concurrency Load & Stress Suite (100 VUs / 60s)
+  # =========================================================================
+  high-concurrency-load-suite:
+    name: ⚡ 3. High-Concurrency Load & Stress Suite (100 VUs / 60s)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: 'load-test/package-lock.json'
+
+      - name: Install Load Test Dependencies
+        run: |
+          cd load-test
+          npm ci || npm install
+
+      - name: Execute 100-VU / 60s Baseline Load & Stress Test
+        env:
+          TARGET_URL: 'https://bamp-1de96.web.app'
+          CONNECTIONS: '100'
+          DURATION: '60'
+        run: |
+          cd load-test
+          npm run load-test
+
+      - name: Upload Downloadable Artifact -> Load Testing Report.xlsx
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: High-Concurrency-Load-Downloadable-Excel-Report
+          path: |
+            load-test/excel/
+            load-test/reports/
+            load-test/logs/
+          if-no-files-found: warn
+          retention-days: 30
+
+  # =========================================================================
+  # 4. REST API Integration Suite (300+ Unique Specs)
+  # =========================================================================
+  api-integration-suite:
+    name: 🔌 4. REST API Integration Suite (300+ Specs)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: 'api-test/package-lock.json'
+
+      - name: Install API Test Dependencies
+        run: |
+          cd api-test
+          npm ci || npm install
+
+      - name: Discover REST API Endpoints & Generate 300 Specs
+        run: |
+          cd api-test
+          npm run discover-routes
+
+      - name: Execute REST API Integration Test Suite
+        env:
+          API_BASE_URL: 'https://bamp-1de96.web.app'
+        run: |
+          cd api-test
+          npm run test
+
+      - name: Generate API Excel & HTML Reports
+        if: always()
+        run: |
+          cd api-test
+          npm run report:excel
+
+      - name: Upload Downloadable Artifact -> API Testing Report.xlsx
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: API-Integration-Downloadable-Excel-Report
+          path: |
+            api-test/excel/
+            api-test/reports/
+            api-test/logs/
+          if-no-files-found: warn
+          retention-days: 30

@@ -26,7 +26,10 @@ selenium-e2e/data/testResultsCache.json
 appium-e2e/reports/
 appium-e2e/screenshots/
 appium-e2e/data/testResultsCache.json
+load-test/reports/
 load-test/data/loadTestResultsCache.json
+api-test/reports/
+api-test/data/apiTestResultsCache.json
 
 # Sensitive Service Accounts & Keys
 firebase-service-account.json

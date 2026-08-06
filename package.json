@@ -17,7 +17,10 @@
     "mobile:test": "npm --prefix appium-e2e run test",
     "mobile:report:excel": "npm --prefix appium-e2e run report:excel",
     "load-test": "npm --prefix load-test run load-test",
-    "load-test:report:excel": "npm --prefix load-test run report:excel"
+    "load-test:report:excel": "npm --prefix load-test run report:excel",
+    "api:discover-routes": "npm --prefix api-test run discover-routes",
+    "api:test": "npm --prefix api-test run test",
+    "api:report:excel": "npm --prefix api-test run report:excel"
   },
   "dependencies": {
     "firebase": "^12.16.0",

@@ -1,0 +1,36 @@
+{
+  "name": "bamp-api-testing-framework",
+  "version": "1.0.0",
+  "description": "Enterprise Production-Ready REST API Integration Automation Framework for BAMP AI Predictor APIs (300+ Specs)",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --config .mocharc.json tests/**/*.test.js",
+    "discover-routes": "node utilities/apiDiscoverer.js",
+    "report:excel": "node -e \"require('./utilities/excelReporter').generateFinalReport()\""
+  },
+  "keywords": [
+    "api-testing",
+    "rest-api",
+    "supertest",
+    "axios",
+    "mocha",
+    "chai",
+    "exceljs",
+    "mochawesome",
+    "winston"
+  ],
+  "author": "Senior API QA Automation Architect",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.8",
+    "chai": "^4.3.10",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.4.5",
+    "exceljs": "^4.4.0",
+    "mocha": "^10.3.0",
+    "mochawesome": "^7.1.3",
+    "mochawesome-report-generator": "^6.2.0",
+    "supertest": "^6.3.4",
+    "winston": "^3.12.0"
+  }
+}

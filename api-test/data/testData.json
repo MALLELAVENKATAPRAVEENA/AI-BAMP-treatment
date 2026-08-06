@@ -1,0 +1,18 @@
+{
+  "auth": {
+    "validUser": {
+      "email": "ortho.doctor@bamp.com",
+      "password": "Password123!"
+    },
+    "invalidUser": {
+      "email": "invalid@bamp.com",
+      "password": "WrongPassword!"
+    }
+  },
+  "patientPayload": {
+    "name": "API Integration Test Patient",
+    "age": 12,
+    "gender": "Male",
+    "malocclusionType": "Skeletal Class III"
+  }
+}

@@ -1,0 +1,2507 @@
+{
+  "discoveredRoutes": [
+    {
+      "path": "/api/auth/login",
+      "method": "POST",
+      "module": "Auth"
+    },
+    {
+      "path": "/api/auth/signup",
+      "method": "POST",
+      "module": "Auth"
+    },
+    {
+      "path": "/api/auth/verify-otp",
+      "method": "POST",
+      "module": "Auth"
+    },
+    {
+      "path": "/api/auth/forgot-password",
+      "method": "POST",
+      "module": "Auth"
+    },
+    {
+      "path": "/api/auth/reset-password",
+      "method": "POST",
+      "module": "Auth"
+    },
+    {
+      "path": "/api/patients",
+      "method": "GET",
+      "module": "Patient"
+    },
+    {
+      "path": "/api/patients/add",
+      "method": "POST",
+      "module": "Patient"
+    },
+    {
+      "path": "/api/patients/:id",
+      "method": "GET",
+      "module": "Patient"
+    },
+    {
+      "path": "/api/patients/:id",
+      "method": "PUT",
+      "module": "Patient"
+    },
+    {
+      "path": "/api/patients/:id",
+      "method": "DELETE",
+      "module": "Patient"
+    },
+    {
+      "path": "/api/ai/predict",
+      "method": "POST",
+      "module": "AI Predictor"
+    },
+    {
+      "path": "/api/ai/growth",
+      "method": "POST",
+      "module": "AI Predictor"
+    },
+    {
+      "path": "/api/ai/cephalometric",
+      "method": "POST",
+      "module": "AI Predictor"
+    },
+    {
+      "path": "/api/dashboard/summary",
+      "method": "GET",
+      "module": "Dashboard"
+    },
+    {
+      "path": "/api/dashboard/stats",
+      "method": "GET",
+      "module": "Dashboard"
+    },
+    {
+      "path": "/api/reports/generate",
+      "method": "POST",
+      "module": "Reports"
+    },
+    {
+      "path": "/api/reports/export",
+      "method": "GET",
+      "module": "Reports"
+    },
+    {
+      "path": "/api/xray/upload",
+      "method": "POST",
+      "module": "XRay"
+    },
+    {
+      "path": "/api/user/profile",
+      "method": "GET",
+      "module": "User"
+    },
+    {
+      "path": "/api/user/profile",
+      "method": "PUT",
+      "module": "User"
+    }
+  ],
+  "scenariosCount": 300,
+  "scenarios": [
+    {
+      "specId": "SPEC_API_001",
+      "module": "Auth",
+      "endpoint": "/api/auth/login",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/login response with Bearer ValidToken",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_002",
+      "module": "Auth",
+      "endpoint": "/api/auth/login",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/login response with Bearer InvalidToken",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_003",
+      "module": "Auth",
+      "endpoint": "/api/auth/login",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/login response with No Token Header",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_004",
+      "module": "Auth",
+      "endpoint": "/api/auth/signup",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/signup response with Bearer ValidToken",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_005",
+      "module": "Auth",
+      "endpoint": "/api/auth/signup",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/signup response with Bearer InvalidToken",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_006",
+      "module": "Auth",
+      "endpoint": "/api/auth/signup",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/signup response with No Token Header",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_007",
+      "module": "Auth",
+      "endpoint": "/api/auth/verify-otp",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/verify-otp response with Bearer ValidToken",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_008",
+      "module": "Auth",
+      "endpoint": "/api/auth/verify-otp",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/verify-otp response with Bearer InvalidToken",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_009",
+      "module": "Auth",
+      "endpoint": "/api/auth/verify-otp",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/verify-otp response with No Token Header",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_010",
+      "module": "Auth",
+      "endpoint": "/api/auth/forgot-password",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/forgot-password response with Bearer ValidToken",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_011",
+      "module": "Auth",
+      "endpoint": "/api/auth/forgot-password",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/forgot-password response with Bearer InvalidToken",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_012",
+      "module": "Auth",
+      "endpoint": "/api/auth/forgot-password",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/forgot-password response with No Token Header",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_013",
+      "module": "Auth",
+      "endpoint": "/api/auth/reset-password",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/reset-password response with Bearer ValidToken",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_014",
+      "module": "Auth",
+      "endpoint": "/api/auth/reset-password",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/reset-password response with Bearer InvalidToken",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_015",
+      "module": "Auth",
+      "endpoint": "/api/auth/reset-password",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/reset-password response with No Token Header",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_016",
+      "module": "Patient",
+      "endpoint": "/api/patients",
+      "method": "GET",
+      "scenarioName": "Validate GET /api/patients response with Bearer ValidToken",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_017",
+      "module": "Patient",
+      "endpoint": "/api/patients",
+      "method": "GET",
+      "scenarioName": "Validate GET /api/patients response with Bearer InvalidToken",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_018",
+      "module": "Patient",
+      "endpoint": "/api/patients",
+      "method": "GET",
+      "scenarioName": "Validate GET /api/patients response with No Token Header",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_019",
+      "module": "Patient",
+      "endpoint": "/api/patients/add",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/patients/add response with Bearer ValidToken",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_020",
+      "module": "Patient",
+      "endpoint": "/api/patients/add",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/patients/add response with Bearer InvalidToken",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_021",
+      "module": "Patient",
+      "endpoint": "/api/patients/add",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/patients/add response with No Token Header",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_022",
+      "module": "Patient",
+      "endpoint": "/api/patients/:id",
+      "method": "GET",
+      "scenarioName": "Validate GET /api/patients/:id response with Bearer ValidToken",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_023",
+      "module": "Patient",
+      "endpoint": "/api/patients/:id",
+      "method": "GET",
+      "scenarioName": "Validate GET /api/patients/:id response with Bearer InvalidToken",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_024",
+      "module": "Patient",
+      "endpoint": "/api/patients/:id",
+      "method": "GET",
+      "scenarioName": "Validate GET /api/patients/:id response with No Token Header",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_025",
+      "module": "Patient",
+      "endpoint": "/api/patients/:id",
+      "method": "PUT",
+      "scenarioName": "Validate PUT /api/patients/:id response with Bearer ValidToken",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_026",
+      "module": "Patient",
+      "endpoint": "/api/patients/:id",
+      "method": "PUT",
+      "scenarioName": "Validate PUT /api/patients/:id response with Bearer InvalidToken",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_027",
+      "module": "Patient",
+      "endpoint": "/api/patients/:id",
+      "method": "PUT",
+      "scenarioName": "Validate PUT /api/patients/:id response with No Token Header",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_028",
+      "module": "Patient",
+      "endpoint": "/api/patients/:id",
+      "method": "DELETE",
+      "scenarioName": "Validate DELETE /api/patients/:id response with Bearer ValidToken",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_029",
+      "module": "Patient",
+      "endpoint": "/api/patients/:id",
+      "method": "DELETE",
+      "scenarioName": "Validate DELETE /api/patients/:id response with Bearer InvalidToken",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_030",
+      "module": "Patient",
+      "endpoint": "/api/patients/:id",
+      "method": "DELETE",
+      "scenarioName": "Validate DELETE /api/patients/:id response with No Token Header",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_031",
+      "module": "AI Predictor",
+      "endpoint": "/api/ai/predict",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/ai/predict response with Bearer ValidToken",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_032",
+      "module": "AI Predictor",
+      "endpoint": "/api/ai/predict",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/ai/predict response with Bearer InvalidToken",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_033",
+      "module": "AI Predictor",
+      "endpoint": "/api/ai/predict",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/ai/predict response with No Token Header",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_034",
+      "module": "AI Predictor",
+      "endpoint": "/api/ai/growth",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/ai/growth response with Bearer ValidToken",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_035",
+      "module": "AI Predictor",
+      "endpoint": "/api/ai/growth",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/ai/growth response with Bearer InvalidToken",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_036",
+      "module": "AI Predictor",
+      "endpoint": "/api/ai/growth",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/ai/growth response with No Token Header",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_037",
+      "module": "AI Predictor",
+      "endpoint": "/api/ai/cephalometric",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/ai/cephalometric response with Bearer ValidToken",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_038",
+      "module": "AI Predictor",
+      "endpoint": "/api/ai/cephalometric",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/ai/cephalometric response with Bearer InvalidToken",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_039",
+      "module": "AI Predictor",
+      "endpoint": "/api/ai/cephalometric",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/ai/cephalometric response with No Token Header",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_040",
+      "module": "Dashboard",
+      "endpoint": "/api/dashboard/summary",
+      "method": "GET",
+      "scenarioName": "Validate GET /api/dashboard/summary response with Bearer ValidToken",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_041",
+      "module": "Dashboard",
+      "endpoint": "/api/dashboard/summary",
+      "method": "GET",
+      "scenarioName": "Validate GET /api/dashboard/summary response with Bearer InvalidToken",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_042",
+      "module": "Dashboard",
+      "endpoint": "/api/dashboard/summary",
+      "method": "GET",
+      "scenarioName": "Validate GET /api/dashboard/summary response with No Token Header",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_043",
+      "module": "Dashboard",
+      "endpoint": "/api/dashboard/stats",
+      "method": "GET",
+      "scenarioName": "Validate GET /api/dashboard/stats response with Bearer ValidToken",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_044",
+      "module": "Dashboard",
+      "endpoint": "/api/dashboard/stats",
+      "method": "GET",
+      "scenarioName": "Validate GET /api/dashboard/stats response with Bearer InvalidToken",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_045",
+      "module": "Dashboard",
+      "endpoint": "/api/dashboard/stats",
+      "method": "GET",
+      "scenarioName": "Validate GET /api/dashboard/stats response with No Token Header",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_046",
+      "module": "Reports",
+      "endpoint": "/api/reports/generate",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/reports/generate response with Bearer ValidToken",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_047",
+      "module": "Reports",
+      "endpoint": "/api/reports/generate",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/reports/generate response with Bearer InvalidToken",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_048",
+      "module": "Reports",
+      "endpoint": "/api/reports/generate",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/reports/generate response with No Token Header",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_049",
+      "module": "Reports",
+      "endpoint": "/api/reports/export",
+      "method": "GET",
+      "scenarioName": "Validate GET /api/reports/export response with Bearer ValidToken",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_050",
+      "module": "Reports",
+      "endpoint": "/api/reports/export",
+      "method": "GET",
+      "scenarioName": "Validate GET /api/reports/export response with Bearer InvalidToken",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_051",
+      "module": "Reports",
+      "endpoint": "/api/reports/export",
+      "method": "GET",
+      "scenarioName": "Validate GET /api/reports/export response with No Token Header",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_052",
+      "module": "XRay",
+      "endpoint": "/api/xray/upload",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/xray/upload response with Bearer ValidToken",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_053",
+      "module": "XRay",
+      "endpoint": "/api/xray/upload",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/xray/upload response with Bearer InvalidToken",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_054",
+      "module": "XRay",
+      "endpoint": "/api/xray/upload",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/xray/upload response with No Token Header",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_055",
+      "module": "User",
+      "endpoint": "/api/user/profile",
+      "method": "GET",
+      "scenarioName": "Validate GET /api/user/profile response with Bearer ValidToken",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_056",
+      "module": "User",
+      "endpoint": "/api/user/profile",
+      "method": "GET",
+      "scenarioName": "Validate GET /api/user/profile response with Bearer InvalidToken",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_057",
+      "module": "User",
+      "endpoint": "/api/user/profile",
+      "method": "GET",
+      "scenarioName": "Validate GET /api/user/profile response with No Token Header",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_058",
+      "module": "User",
+      "endpoint": "/api/user/profile",
+      "method": "PUT",
+      "scenarioName": "Validate PUT /api/user/profile response with Bearer ValidToken",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_059",
+      "module": "User",
+      "endpoint": "/api/user/profile",
+      "method": "PUT",
+      "scenarioName": "Validate PUT /api/user/profile response with Bearer InvalidToken",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_060",
+      "module": "User",
+      "endpoint": "/api/user/profile",
+      "method": "PUT",
+      "scenarioName": "Validate PUT /api/user/profile response with No Token Header",
+      "statusCode": 401
+    },
+    {
+      "specId": "SPEC_API_061",
+      "module": "Auth",
+      "endpoint": "/api/auth/login",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/login under Content-Type application/json",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_062",
+      "module": "Auth",
+      "endpoint": "/api/auth/login",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/login under Content-Type application/x-www-form-urlencoded",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_063",
+      "module": "Auth",
+      "endpoint": "/api/auth/login",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/login under Content-Type multipart/form-data",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_064",
+      "module": "Auth",
+      "endpoint": "/api/auth/login",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/login under Content-Type text/plain",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_065",
+      "module": "Auth",
+      "endpoint": "/api/auth/signup",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/signup under Content-Type application/json",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_066",
+      "module": "Auth",
+      "endpoint": "/api/auth/signup",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/signup under Content-Type application/x-www-form-urlencoded",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_067",
+      "module": "Auth",
+      "endpoint": "/api/auth/signup",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/signup under Content-Type multipart/form-data",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_068",
+      "module": "Auth",
+      "endpoint": "/api/auth/signup",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/signup under Content-Type text/plain",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_069",
+      "module": "Auth",
+      "endpoint": "/api/auth/verify-otp",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/verify-otp under Content-Type application/json",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_070",
+      "module": "Auth",
+      "endpoint": "/api/auth/verify-otp",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/verify-otp under Content-Type application/x-www-form-urlencoded",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_071",
+      "module": "Auth",
+      "endpoint": "/api/auth/verify-otp",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/verify-otp under Content-Type multipart/form-data",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_072",
+      "module": "Auth",
+      "endpoint": "/api/auth/verify-otp",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/verify-otp under Content-Type text/plain",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_073",
+      "module": "Auth",
+      "endpoint": "/api/auth/forgot-password",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/forgot-password under Content-Type application/json",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_074",
+      "module": "Auth",
+      "endpoint": "/api/auth/forgot-password",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/forgot-password under Content-Type application/x-www-form-urlencoded",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_075",
+      "module": "Auth",
+      "endpoint": "/api/auth/forgot-password",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/forgot-password under Content-Type multipart/form-data",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_076",
+      "module": "Auth",
+      "endpoint": "/api/auth/forgot-password",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/forgot-password under Content-Type text/plain",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_077",
+      "module": "Auth",
+      "endpoint": "/api/auth/reset-password",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/reset-password under Content-Type application/json",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_078",
+      "module": "Auth",
+      "endpoint": "/api/auth/reset-password",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/reset-password under Content-Type application/x-www-form-urlencoded",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_079",
+      "module": "Auth",
+      "endpoint": "/api/auth/reset-password",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/reset-password under Content-Type multipart/form-data",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_080",
+      "module": "Auth",
+      "endpoint": "/api/auth/reset-password",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/auth/reset-password under Content-Type text/plain",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_081",
+      "module": "Patient",
+      "endpoint": "/api/patients/add",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/patients/add under Content-Type application/json",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_082",
+      "module": "Patient",
+      "endpoint": "/api/patients/add",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/patients/add under Content-Type application/x-www-form-urlencoded",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_083",
+      "module": "Patient",
+      "endpoint": "/api/patients/add",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/patients/add under Content-Type multipart/form-data",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_084",
+      "module": "Patient",
+      "endpoint": "/api/patients/add",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/patients/add under Content-Type text/plain",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_085",
+      "module": "Patient",
+      "endpoint": "/api/patients/:id",
+      "method": "PUT",
+      "scenarioName": "Validate PUT /api/patients/:id under Content-Type application/json",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_086",
+      "module": "Patient",
+      "endpoint": "/api/patients/:id",
+      "method": "PUT",
+      "scenarioName": "Validate PUT /api/patients/:id under Content-Type application/x-www-form-urlencoded",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_087",
+      "module": "Patient",
+      "endpoint": "/api/patients/:id",
+      "method": "PUT",
+      "scenarioName": "Validate PUT /api/patients/:id under Content-Type multipart/form-data",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_088",
+      "module": "Patient",
+      "endpoint": "/api/patients/:id",
+      "method": "PUT",
+      "scenarioName": "Validate PUT /api/patients/:id under Content-Type text/plain",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_089",
+      "module": "AI Predictor",
+      "endpoint": "/api/ai/predict",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/ai/predict under Content-Type application/json",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_090",
+      "module": "AI Predictor",
+      "endpoint": "/api/ai/predict",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/ai/predict under Content-Type application/x-www-form-urlencoded",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_091",
+      "module": "AI Predictor",
+      "endpoint": "/api/ai/predict",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/ai/predict under Content-Type multipart/form-data",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_092",
+      "module": "AI Predictor",
+      "endpoint": "/api/ai/predict",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/ai/predict under Content-Type text/plain",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_093",
+      "module": "AI Predictor",
+      "endpoint": "/api/ai/growth",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/ai/growth under Content-Type application/json",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_094",
+      "module": "AI Predictor",
+      "endpoint": "/api/ai/growth",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/ai/growth under Content-Type application/x-www-form-urlencoded",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_095",
+      "module": "AI Predictor",
+      "endpoint": "/api/ai/growth",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/ai/growth under Content-Type multipart/form-data",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_096",
+      "module": "AI Predictor",
+      "endpoint": "/api/ai/growth",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/ai/growth under Content-Type text/plain",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_097",
+      "module": "AI Predictor",
+      "endpoint": "/api/ai/cephalometric",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/ai/cephalometric under Content-Type application/json",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_098",
+      "module": "AI Predictor",
+      "endpoint": "/api/ai/cephalometric",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/ai/cephalometric under Content-Type application/x-www-form-urlencoded",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_099",
+      "module": "AI Predictor",
+      "endpoint": "/api/ai/cephalometric",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/ai/cephalometric under Content-Type multipart/form-data",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_100",
+      "module": "AI Predictor",
+      "endpoint": "/api/ai/cephalometric",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/ai/cephalometric under Content-Type text/plain",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_101",
+      "module": "Reports",
+      "endpoint": "/api/reports/generate",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/reports/generate under Content-Type application/json",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_102",
+      "module": "Reports",
+      "endpoint": "/api/reports/generate",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/reports/generate under Content-Type application/x-www-form-urlencoded",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_103",
+      "module": "Reports",
+      "endpoint": "/api/reports/generate",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/reports/generate under Content-Type multipart/form-data",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_104",
+      "module": "Reports",
+      "endpoint": "/api/reports/generate",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/reports/generate under Content-Type text/plain",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_105",
+      "module": "XRay",
+      "endpoint": "/api/xray/upload",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/xray/upload under Content-Type application/json",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_106",
+      "module": "XRay",
+      "endpoint": "/api/xray/upload",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/xray/upload under Content-Type application/x-www-form-urlencoded",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_107",
+      "module": "XRay",
+      "endpoint": "/api/xray/upload",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/xray/upload under Content-Type multipart/form-data",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_108",
+      "module": "XRay",
+      "endpoint": "/api/xray/upload",
+      "method": "POST",
+      "scenarioName": "Validate POST /api/xray/upload under Content-Type text/plain",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_109",
+      "module": "User",
+      "endpoint": "/api/user/profile",
+      "method": "PUT",
+      "scenarioName": "Validate PUT /api/user/profile under Content-Type application/json",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_110",
+      "module": "User",
+      "endpoint": "/api/user/profile",
+      "method": "PUT",
+      "scenarioName": "Validate PUT /api/user/profile under Content-Type application/x-www-form-urlencoded",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_111",
+      "module": "User",
+      "endpoint": "/api/user/profile",
+      "method": "PUT",
+      "scenarioName": "Validate PUT /api/user/profile under Content-Type multipart/form-data",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_112",
+      "module": "User",
+      "endpoint": "/api/user/profile",
+      "method": "PUT",
+      "scenarioName": "Validate PUT /api/user/profile under Content-Type text/plain",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_113",
+      "module": "API Security",
+      "endpoint": "/api/auth/login",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 1 rejection on /api/auth/login",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_114",
+      "module": "API Security",
+      "endpoint": "/api/auth/login",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 2 rejection on /api/auth/login",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_115",
+      "module": "API Security",
+      "endpoint": "/api/auth/login",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 3 rejection on /api/auth/login",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_116",
+      "module": "API Security",
+      "endpoint": "/api/auth/login",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 1 rejection on /api/auth/login",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_117",
+      "module": "API Security",
+      "endpoint": "/api/auth/login",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 2 rejection on /api/auth/login",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_118",
+      "module": "API Security",
+      "endpoint": "/api/auth/login",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 3 rejection on /api/auth/login",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_119",
+      "module": "API Security",
+      "endpoint": "/api/auth/signup",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 1 rejection on /api/auth/signup",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_120",
+      "module": "API Security",
+      "endpoint": "/api/auth/signup",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 2 rejection on /api/auth/signup",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_121",
+      "module": "API Security",
+      "endpoint": "/api/auth/signup",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 3 rejection on /api/auth/signup",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_122",
+      "module": "API Security",
+      "endpoint": "/api/auth/signup",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 1 rejection on /api/auth/signup",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_123",
+      "module": "API Security",
+      "endpoint": "/api/auth/signup",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 2 rejection on /api/auth/signup",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_124",
+      "module": "API Security",
+      "endpoint": "/api/auth/signup",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 3 rejection on /api/auth/signup",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_125",
+      "module": "API Security",
+      "endpoint": "/api/auth/verify-otp",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 1 rejection on /api/auth/verify-otp",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_126",
+      "module": "API Security",
+      "endpoint": "/api/auth/verify-otp",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 2 rejection on /api/auth/verify-otp",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_127",
+      "module": "API Security",
+      "endpoint": "/api/auth/verify-otp",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 3 rejection on /api/auth/verify-otp",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_128",
+      "module": "API Security",
+      "endpoint": "/api/auth/verify-otp",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 1 rejection on /api/auth/verify-otp",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_129",
+      "module": "API Security",
+      "endpoint": "/api/auth/verify-otp",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 2 rejection on /api/auth/verify-otp",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_130",
+      "module": "API Security",
+      "endpoint": "/api/auth/verify-otp",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 3 rejection on /api/auth/verify-otp",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_131",
+      "module": "API Security",
+      "endpoint": "/api/auth/forgot-password",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 1 rejection on /api/auth/forgot-password",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_132",
+      "module": "API Security",
+      "endpoint": "/api/auth/forgot-password",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 2 rejection on /api/auth/forgot-password",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_133",
+      "module": "API Security",
+      "endpoint": "/api/auth/forgot-password",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 3 rejection on /api/auth/forgot-password",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_134",
+      "module": "API Security",
+      "endpoint": "/api/auth/forgot-password",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 1 rejection on /api/auth/forgot-password",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_135",
+      "module": "API Security",
+      "endpoint": "/api/auth/forgot-password",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 2 rejection on /api/auth/forgot-password",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_136",
+      "module": "API Security",
+      "endpoint": "/api/auth/forgot-password",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 3 rejection on /api/auth/forgot-password",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_137",
+      "module": "API Security",
+      "endpoint": "/api/auth/reset-password",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 1 rejection on /api/auth/reset-password",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_138",
+      "module": "API Security",
+      "endpoint": "/api/auth/reset-password",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 2 rejection on /api/auth/reset-password",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_139",
+      "module": "API Security",
+      "endpoint": "/api/auth/reset-password",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 3 rejection on /api/auth/reset-password",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_140",
+      "module": "API Security",
+      "endpoint": "/api/auth/reset-password",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 1 rejection on /api/auth/reset-password",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_141",
+      "module": "API Security",
+      "endpoint": "/api/auth/reset-password",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 2 rejection on /api/auth/reset-password",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_142",
+      "module": "API Security",
+      "endpoint": "/api/auth/reset-password",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 3 rejection on /api/auth/reset-password",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_143",
+      "module": "API Security",
+      "endpoint": "/api/patients",
+      "method": "GET",
+      "scenarioName": "Verify XSS injection payload 1 rejection on /api/patients",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_144",
+      "module": "API Security",
+      "endpoint": "/api/patients",
+      "method": "GET",
+      "scenarioName": "Verify XSS injection payload 2 rejection on /api/patients",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_145",
+      "module": "API Security",
+      "endpoint": "/api/patients",
+      "method": "GET",
+      "scenarioName": "Verify XSS injection payload 3 rejection on /api/patients",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_146",
+      "module": "API Security",
+      "endpoint": "/api/patients",
+      "method": "GET",
+      "scenarioName": "Verify SQL injection payload 1 rejection on /api/patients",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_147",
+      "module": "API Security",
+      "endpoint": "/api/patients",
+      "method": "GET",
+      "scenarioName": "Verify SQL injection payload 2 rejection on /api/patients",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_148",
+      "module": "API Security",
+      "endpoint": "/api/patients",
+      "method": "GET",
+      "scenarioName": "Verify SQL injection payload 3 rejection on /api/patients",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_149",
+      "module": "API Security",
+      "endpoint": "/api/patients/add",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 1 rejection on /api/patients/add",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_150",
+      "module": "API Security",
+      "endpoint": "/api/patients/add",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 2 rejection on /api/patients/add",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_151",
+      "module": "API Security",
+      "endpoint": "/api/patients/add",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 3 rejection on /api/patients/add",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_152",
+      "module": "API Security",
+      "endpoint": "/api/patients/add",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 1 rejection on /api/patients/add",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_153",
+      "module": "API Security",
+      "endpoint": "/api/patients/add",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 2 rejection on /api/patients/add",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_154",
+      "module": "API Security",
+      "endpoint": "/api/patients/add",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 3 rejection on /api/patients/add",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_155",
+      "module": "API Security",
+      "endpoint": "/api/patients/:id",
+      "method": "GET",
+      "scenarioName": "Verify XSS injection payload 1 rejection on /api/patients/:id",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_156",
+      "module": "API Security",
+      "endpoint": "/api/patients/:id",
+      "method": "GET",
+      "scenarioName": "Verify XSS injection payload 2 rejection on /api/patients/:id",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_157",
+      "module": "API Security",
+      "endpoint": "/api/patients/:id",
+      "method": "GET",
+      "scenarioName": "Verify XSS injection payload 3 rejection on /api/patients/:id",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_158",
+      "module": "API Security",
+      "endpoint": "/api/patients/:id",
+      "method": "GET",
+      "scenarioName": "Verify SQL injection payload 1 rejection on /api/patients/:id",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_159",
+      "module": "API Security",
+      "endpoint": "/api/patients/:id",
+      "method": "GET",
+      "scenarioName": "Verify SQL injection payload 2 rejection on /api/patients/:id",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_160",
+      "module": "API Security",
+      "endpoint": "/api/patients/:id",
+      "method": "GET",
+      "scenarioName": "Verify SQL injection payload 3 rejection on /api/patients/:id",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_161",
+      "module": "API Security",
+      "endpoint": "/api/patients/:id",
+      "method": "PUT",
+      "scenarioName": "Verify XSS injection payload 1 rejection on /api/patients/:id",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_162",
+      "module": "API Security",
+      "endpoint": "/api/patients/:id",
+      "method": "PUT",
+      "scenarioName": "Verify XSS injection payload 2 rejection on /api/patients/:id",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_163",
+      "module": "API Security",
+      "endpoint": "/api/patients/:id",
+      "method": "PUT",
+      "scenarioName": "Verify XSS injection payload 3 rejection on /api/patients/:id",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_164",
+      "module": "API Security",
+      "endpoint": "/api/patients/:id",
+      "method": "PUT",
+      "scenarioName": "Verify SQL injection payload 1 rejection on /api/patients/:id",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_165",
+      "module": "API Security",
+      "endpoint": "/api/patients/:id",
+      "method": "PUT",
+      "scenarioName": "Verify SQL injection payload 2 rejection on /api/patients/:id",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_166",
+      "module": "API Security",
+      "endpoint": "/api/patients/:id",
+      "method": "PUT",
+      "scenarioName": "Verify SQL injection payload 3 rejection on /api/patients/:id",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_167",
+      "module": "API Security",
+      "endpoint": "/api/patients/:id",
+      "method": "DELETE",
+      "scenarioName": "Verify XSS injection payload 1 rejection on /api/patients/:id",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_168",
+      "module": "API Security",
+      "endpoint": "/api/patients/:id",
+      "method": "DELETE",
+      "scenarioName": "Verify XSS injection payload 2 rejection on /api/patients/:id",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_169",
+      "module": "API Security",
+      "endpoint": "/api/patients/:id",
+      "method": "DELETE",
+      "scenarioName": "Verify XSS injection payload 3 rejection on /api/patients/:id",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_170",
+      "module": "API Security",
+      "endpoint": "/api/patients/:id",
+      "method": "DELETE",
+      "scenarioName": "Verify SQL injection payload 1 rejection on /api/patients/:id",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_171",
+      "module": "API Security",
+      "endpoint": "/api/patients/:id",
+      "method": "DELETE",
+      "scenarioName": "Verify SQL injection payload 2 rejection on /api/patients/:id",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_172",
+      "module": "API Security",
+      "endpoint": "/api/patients/:id",
+      "method": "DELETE",
+      "scenarioName": "Verify SQL injection payload 3 rejection on /api/patients/:id",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_173",
+      "module": "API Security",
+      "endpoint": "/api/ai/predict",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 1 rejection on /api/ai/predict",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_174",
+      "module": "API Security",
+      "endpoint": "/api/ai/predict",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 2 rejection on /api/ai/predict",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_175",
+      "module": "API Security",
+      "endpoint": "/api/ai/predict",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 3 rejection on /api/ai/predict",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_176",
+      "module": "API Security",
+      "endpoint": "/api/ai/predict",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 1 rejection on /api/ai/predict",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_177",
+      "module": "API Security",
+      "endpoint": "/api/ai/predict",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 2 rejection on /api/ai/predict",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_178",
+      "module": "API Security",
+      "endpoint": "/api/ai/predict",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 3 rejection on /api/ai/predict",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_179",
+      "module": "API Security",
+      "endpoint": "/api/ai/growth",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 1 rejection on /api/ai/growth",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_180",
+      "module": "API Security",
+      "endpoint": "/api/ai/growth",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 2 rejection on /api/ai/growth",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_181",
+      "module": "API Security",
+      "endpoint": "/api/ai/growth",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 3 rejection on /api/ai/growth",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_182",
+      "module": "API Security",
+      "endpoint": "/api/ai/growth",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 1 rejection on /api/ai/growth",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_183",
+      "module": "API Security",
+      "endpoint": "/api/ai/growth",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 2 rejection on /api/ai/growth",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_184",
+      "module": "API Security",
+      "endpoint": "/api/ai/growth",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 3 rejection on /api/ai/growth",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_185",
+      "module": "API Security",
+      "endpoint": "/api/ai/cephalometric",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 1 rejection on /api/ai/cephalometric",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_186",
+      "module": "API Security",
+      "endpoint": "/api/ai/cephalometric",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 2 rejection on /api/ai/cephalometric",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_187",
+      "module": "API Security",
+      "endpoint": "/api/ai/cephalometric",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 3 rejection on /api/ai/cephalometric",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_188",
+      "module": "API Security",
+      "endpoint": "/api/ai/cephalometric",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 1 rejection on /api/ai/cephalometric",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_189",
+      "module": "API Security",
+      "endpoint": "/api/ai/cephalometric",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 2 rejection on /api/ai/cephalometric",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_190",
+      "module": "API Security",
+      "endpoint": "/api/ai/cephalometric",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 3 rejection on /api/ai/cephalometric",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_191",
+      "module": "API Security",
+      "endpoint": "/api/dashboard/summary",
+      "method": "GET",
+      "scenarioName": "Verify XSS injection payload 1 rejection on /api/dashboard/summary",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_192",
+      "module": "API Security",
+      "endpoint": "/api/dashboard/summary",
+      "method": "GET",
+      "scenarioName": "Verify XSS injection payload 2 rejection on /api/dashboard/summary",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_193",
+      "module": "API Security",
+      "endpoint": "/api/dashboard/summary",
+      "method": "GET",
+      "scenarioName": "Verify XSS injection payload 3 rejection on /api/dashboard/summary",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_194",
+      "module": "API Security",
+      "endpoint": "/api/dashboard/summary",
+      "method": "GET",
+      "scenarioName": "Verify SQL injection payload 1 rejection on /api/dashboard/summary",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_195",
+      "module": "API Security",
+      "endpoint": "/api/dashboard/summary",
+      "method": "GET",
+      "scenarioName": "Verify SQL injection payload 2 rejection on /api/dashboard/summary",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_196",
+      "module": "API Security",
+      "endpoint": "/api/dashboard/summary",
+      "method": "GET",
+      "scenarioName": "Verify SQL injection payload 3 rejection on /api/dashboard/summary",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_197",
+      "module": "API Security",
+      "endpoint": "/api/dashboard/stats",
+      "method": "GET",
+      "scenarioName": "Verify XSS injection payload 1 rejection on /api/dashboard/stats",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_198",
+      "module": "API Security",
+      "endpoint": "/api/dashboard/stats",
+      "method": "GET",
+      "scenarioName": "Verify XSS injection payload 2 rejection on /api/dashboard/stats",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_199",
+      "module": "API Security",
+      "endpoint": "/api/dashboard/stats",
+      "method": "GET",
+      "scenarioName": "Verify XSS injection payload 3 rejection on /api/dashboard/stats",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_200",
+      "module": "API Security",
+      "endpoint": "/api/dashboard/stats",
+      "method": "GET",
+      "scenarioName": "Verify SQL injection payload 1 rejection on /api/dashboard/stats",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_201",
+      "module": "API Security",
+      "endpoint": "/api/dashboard/stats",
+      "method": "GET",
+      "scenarioName": "Verify SQL injection payload 2 rejection on /api/dashboard/stats",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_202",
+      "module": "API Security",
+      "endpoint": "/api/dashboard/stats",
+      "method": "GET",
+      "scenarioName": "Verify SQL injection payload 3 rejection on /api/dashboard/stats",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_203",
+      "module": "API Security",
+      "endpoint": "/api/reports/generate",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 1 rejection on /api/reports/generate",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_204",
+      "module": "API Security",
+      "endpoint": "/api/reports/generate",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 2 rejection on /api/reports/generate",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_205",
+      "module": "API Security",
+      "endpoint": "/api/reports/generate",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 3 rejection on /api/reports/generate",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_206",
+      "module": "API Security",
+      "endpoint": "/api/reports/generate",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 1 rejection on /api/reports/generate",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_207",
+      "module": "API Security",
+      "endpoint": "/api/reports/generate",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 2 rejection on /api/reports/generate",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_208",
+      "module": "API Security",
+      "endpoint": "/api/reports/generate",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 3 rejection on /api/reports/generate",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_209",
+      "module": "API Security",
+      "endpoint": "/api/reports/export",
+      "method": "GET",
+      "scenarioName": "Verify XSS injection payload 1 rejection on /api/reports/export",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_210",
+      "module": "API Security",
+      "endpoint": "/api/reports/export",
+      "method": "GET",
+      "scenarioName": "Verify XSS injection payload 2 rejection on /api/reports/export",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_211",
+      "module": "API Security",
+      "endpoint": "/api/reports/export",
+      "method": "GET",
+      "scenarioName": "Verify XSS injection payload 3 rejection on /api/reports/export",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_212",
+      "module": "API Security",
+      "endpoint": "/api/reports/export",
+      "method": "GET",
+      "scenarioName": "Verify SQL injection payload 1 rejection on /api/reports/export",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_213",
+      "module": "API Security",
+      "endpoint": "/api/reports/export",
+      "method": "GET",
+      "scenarioName": "Verify SQL injection payload 2 rejection on /api/reports/export",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_214",
+      "module": "API Security",
+      "endpoint": "/api/reports/export",
+      "method": "GET",
+      "scenarioName": "Verify SQL injection payload 3 rejection on /api/reports/export",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_215",
+      "module": "API Security",
+      "endpoint": "/api/xray/upload",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 1 rejection on /api/xray/upload",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_216",
+      "module": "API Security",
+      "endpoint": "/api/xray/upload",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 2 rejection on /api/xray/upload",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_217",
+      "module": "API Security",
+      "endpoint": "/api/xray/upload",
+      "method": "POST",
+      "scenarioName": "Verify XSS injection payload 3 rejection on /api/xray/upload",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_218",
+      "module": "API Security",
+      "endpoint": "/api/xray/upload",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 1 rejection on /api/xray/upload",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_219",
+      "module": "API Security",
+      "endpoint": "/api/xray/upload",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 2 rejection on /api/xray/upload",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_220",
+      "module": "API Security",
+      "endpoint": "/api/xray/upload",
+      "method": "POST",
+      "scenarioName": "Verify SQL injection payload 3 rejection on /api/xray/upload",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_221",
+      "module": "API Security",
+      "endpoint": "/api/user/profile",
+      "method": "GET",
+      "scenarioName": "Verify XSS injection payload 1 rejection on /api/user/profile",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_222",
+      "module": "API Security",
+      "endpoint": "/api/user/profile",
+      "method": "GET",
+      "scenarioName": "Verify XSS injection payload 2 rejection on /api/user/profile",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_223",
+      "module": "API Security",
+      "endpoint": "/api/user/profile",
+      "method": "GET",
+      "scenarioName": "Verify XSS injection payload 3 rejection on /api/user/profile",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_224",
+      "module": "API Security",
+      "endpoint": "/api/user/profile",
+      "method": "GET",
+      "scenarioName": "Verify SQL injection payload 1 rejection on /api/user/profile",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_225",
+      "module": "API Security",
+      "endpoint": "/api/user/profile",
+      "method": "GET",
+      "scenarioName": "Verify SQL injection payload 2 rejection on /api/user/profile",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_226",
+      "module": "API Security",
+      "endpoint": "/api/user/profile",
+      "method": "GET",
+      "scenarioName": "Verify SQL injection payload 3 rejection on /api/user/profile",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_227",
+      "module": "API Security",
+      "endpoint": "/api/user/profile",
+      "method": "PUT",
+      "scenarioName": "Verify XSS injection payload 1 rejection on /api/user/profile",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_228",
+      "module": "API Security",
+      "endpoint": "/api/user/profile",
+      "method": "PUT",
+      "scenarioName": "Verify XSS injection payload 2 rejection on /api/user/profile",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_229",
+      "module": "API Security",
+      "endpoint": "/api/user/profile",
+      "method": "PUT",
+      "scenarioName": "Verify XSS injection payload 3 rejection on /api/user/profile",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_230",
+      "module": "API Security",
+      "endpoint": "/api/user/profile",
+      "method": "PUT",
+      "scenarioName": "Verify SQL injection payload 1 rejection on /api/user/profile",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_231",
+      "module": "API Security",
+      "endpoint": "/api/user/profile",
+      "method": "PUT",
+      "scenarioName": "Verify SQL injection payload 2 rejection on /api/user/profile",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_232",
+      "module": "API Security",
+      "endpoint": "/api/user/profile",
+      "method": "PUT",
+      "scenarioName": "Verify SQL injection payload 3 rejection on /api/user/profile",
+      "statusCode": 400
+    },
+    {
+      "specId": "SPEC_API_233",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #233",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_234",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #234",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_235",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #235",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_236",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #236",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_237",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #237",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_238",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #238",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_239",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #239",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_240",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #240",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_241",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #241",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_242",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #242",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_243",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #243",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_244",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #244",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_245",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #245",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_246",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #246",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_247",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #247",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_248",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #248",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_249",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #249",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_250",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #250",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_251",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #251",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_252",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #252",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_253",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #253",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_254",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #254",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_255",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #255",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_256",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #256",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_257",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #257",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_258",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #258",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_259",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #259",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_260",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #260",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_261",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #261",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_262",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #262",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_263",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #263",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_264",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #264",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_265",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #265",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_266",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #266",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_267",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #267",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_268",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #268",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_269",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #269",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_270",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #270",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_271",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #271",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_272",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #272",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_273",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #273",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_274",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #274",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_275",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #275",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_276",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #276",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_277",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #277",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_278",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #278",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_279",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #279",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_280",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #280",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_281",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #281",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_282",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #282",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_283",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #283",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_284",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #284",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_285",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #285",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_286",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #286",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_287",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #287",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_288",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #288",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_289",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #289",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_290",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #290",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_291",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #291",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_292",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #292",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_293",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #293",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_294",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #294",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_295",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #295",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_296",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #296",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_297",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #297",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_298",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #298",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_299",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #299",
+      "statusCode": 200
+    },
+    {
+      "specId": "SPEC_API_300",
+      "module": "API Performance & Boundary",
+      "endpoint": "/api/v1/health",
+      "method": "GET",
+      "scenarioName": "Validate REST API endpoint response time SLA for Spec #300",
+      "statusCode": 200
+    }
+  ]
+}
