@@ -8,28 +8,28 @@ A production-ready, highly scalable, enterprise End-to-End (E2E) Selenium WebDri
 
 1. **Page Object Model (POM) Architecture:** Strict decoupling of UI page locators and user interactions from test verification scripts.
 2. **Dynamic React Route & Form Discovery Scanner (`utilities/routeFormDiscoverer.js`):** Automatically parses React Router routes (`AppRoutes.jsx`) and form validation rules (`required`, `email`, `minLength`, `pattern`) to generate dynamic test scenarios automatically.
-3. **Cross-Browser & Multi-Mode Execution:** Out-of-the-box execution support for **Google Chrome**, **Microsoft Edge**, and **Mozilla Firefox** in both **Headed** and **Headless** modes.
+3. **Cross-Browser & Multi-Mode Execution:** Out-of-the-box execution support for **Google Chrome**, **Microsoft Edge**, and **Mozilla Firefox** in both **Headed** and **Headless** modes using `cross-env`.
 4. **4-Sheet ExcelJS Reporting (`excel/E2E_Report.xlsx`):**
    - **Sheet 1: Summary** (Execution date, environment, pass/fail counts, duration)
    - **Sheet 2: Test Cases** (Detailed status per scenario, browser, execution time)
    - **Sheet 3: Failed Tests** (Failure trace, URL, screenshot path)
    - **Sheet 4: Execution Logs** (Step-by-step Winston action logs)
 5. **Mochawesome HTML Reporting:** Generates rich, interactive HTML reports with embedded screenshots and video/log traces.
-6. **Automatic Failure Handling & Screenshots:** Captures full-page screenshots, current page URL, browser console errors, and stack traces upon any test failure under `reports/failures/`.
-7. **CI/CD Integration:** Ready-to-run `.github/workflows/selenium-e2e.yml` GitHub Actions pipeline with automated browser provisioning and artifact uploads.
+6. **Automatic Failure Handling & Screenshots:** Captures full-page screenshots, current page URL, browser console errors, detailed log files, and stack traces upon any test failure under `reports/failures/`.
+7. **CI/CD Integration:** Ready-to-run `.github/workflows/selenium-e2e.yml` GitHub Actions matrix pipeline with automated browser provisioning and artifact uploads.
 
 ---
 
 ## 📁 Framework Structure
 
-```
+```text
 selenium-e2e/
 ├── config/
 │   ├── config.js               # Environment URL, timeouts, browser configs, retries
 │   └── driverFactory.js        # Driver builder for Chrome, Edge, Firefox (Headed/Headless)
 ├── utilities/
 │   ├── logger.js               # Winston logger configuration
-│   ├── waitUtils.js            # Explicit waits, retry helper, JS execution, scrolling
+│   ├── waitUtils.js            # Explicit waits, retry helper, JS execution, scrolling, window handling
 │   ├── screenshotUtils.js      # Failure screenshot generator & path resolver
 │   ├── excelReporter.js        # ExcelJS 4-sheet E2E report generator
 │   └── routeFormDiscoverer.js  # AST/Regex scanner for dynamic route & form testing
@@ -37,7 +37,8 @@ selenium-e2e/
 │   ├── BasePage.js             # Reusable POM parent class
 │   ├── LoginPage.js            # POM for Authentication testing
 │   ├── DashboardPage.js        # POM for Orthodontist Dashboard
-│   └── AddPatientPage.js       # POM for Form Validation testing
+│   ├── AddPatientPage.js       # POM for Form Validation testing
+│   └── UIComponentsPage.js     # POM for generic React UI components (Modals, Toasts, Tables, Tooltips)
 ├── data/
 │   ├── testData.json           # Valid/invalid credentials & patient data
 │   └── discoveredRoutes.json   # Output cache from Route Discovery Scanner
@@ -48,7 +49,7 @@ selenium-e2e/
 │   ├── uiAndNavigation.test.js # UI & Navigation test suite
 │   └── dynamicDiscovery.test.js# Dynamic Route & Form Discovery test suite
 ├── reports/
-│   ├── failures/               # Failure screenshots & console logs
+│   ├── failures/               # Failure screenshots, console logs, & stack traces
 │   └── html/                   # Mochawesome HTML Report output
 ├── excel/                      # Generated E2E_Report.xlsx
 ├── logs/                       # Winston log output files
@@ -97,12 +98,15 @@ npm run test:headless
 ```bash
 # Google Chrome
 npm run test:chrome
+npm run test:headless:chrome
 
 # Mozilla Firefox
 npm run test:firefox
+npm run test:headless:firefox
 
 # Microsoft Edge
 npm run test:edge
+npm run test:headless:edge
 ```
 
 ---
@@ -112,5 +116,5 @@ npm run test:edge
 After every test run, reports are automatically compiled under:
 1. **Excel Report:** `selenium-e2e/excel/E2E_Report.xlsx`
 2. **HTML Report:** `selenium-e2e/reports/html/E2E_Execution_Report.html`
-3. **Failure Screenshots:** `selenium-e2e/reports/failures/`
+3. **Failure Artifacts:** `selenium-e2e/reports/failures/`
 4. **Execution Logs:** `selenium-e2e/logs/e2e_execution.log`

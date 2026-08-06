@@ -9,6 +9,25 @@ class ExcelReporter {
   static failedTests = [];
   static executionLogs = [];
   static startTime = new Date();
+  static cacheFilePath = path.join(config.paths.data, 'testResultsCache.json');
+
+  static initCache() {
+    try {
+      if (!fs.existsSync(config.paths.data)) {
+        fs.mkdirSync(config.paths.data, { recursive: true });
+      }
+    } catch (_) {}
+  }
+
+  static clearCache() {
+    try {
+      this.initCache();
+      this.testResults = [];
+      this.failedTests = [];
+      this.executionLogs = [];
+      fs.writeFileSync(this.cacheFilePath, JSON.stringify([], null, 2));
+    } catch (_) {}
+  }
 
   static logStep(testName, stepDescription, result = 'PASS', remarks = '') {
     this.executionLogs.push({
@@ -21,7 +40,9 @@ class ExcelReporter {
   }
 
   static recordTestResult(testData) {
+    this.initCache();
     this.testResults.push(testData);
+
     if (testData.status === 'FAILED') {
       this.failedTests.push({
         testName: testData.scenarioName,
@@ -31,12 +52,49 @@ class ExcelReporter {
         url: testData.url || config.baseUrl
       });
     }
+
+    // Persist to disk cache
+    try {
+      let cached = [];
+      if (fs.existsSync(this.cacheFilePath)) {
+        const raw = fs.readFileSync(this.cacheFilePath, 'utf8');
+        if (raw) cached = JSON.parse(raw);
+      }
+      cached.push(testData);
+      fs.writeFileSync(this.cacheFilePath, JSON.stringify(cached, null, 2));
+    } catch (_) {}
+  }
+
+  static loadResultsFromCache() {
+    try {
+      if (fs.existsSync(this.cacheFilePath)) {
+        const raw = fs.readFileSync(this.cacheFilePath, 'utf8');
+        if (raw) {
+          const cached = JSON.parse(raw);
+          if (cached && cached.length > 0) {
+            this.testResults = cached;
+            this.failedTests = cached.filter(t => t.status === 'FAILED').map(t => ({
+              testName: t.scenarioName,
+              failureReason: t.failureReason || 'Assertion failure',
+              screenshotPath: t.screenshotPath || 'N/A',
+              browser: t.browser || config.browser,
+              url: t.url || config.baseUrl
+            }));
+          }
+        }
+      }
+    } catch (_) {}
   }
 
   static async generateFinalReport() {
     try {
       if (!fs.existsSync(config.paths.excel)) {
         fs.mkdirSync(config.paths.excel, { recursive: true });
+      }
+
+      // Load cached results if in-memory testResults is empty
+      if (this.testResults.length === 0) {
+        this.loadResultsFromCache();
       }
 
       const workbook = new ExcelJS.Workbook();
@@ -56,7 +114,7 @@ class ExcelReporter {
       const summarySheet = workbook.addWorksheet('Summary', { properties: { tabColor: { argb: 'FF0F52BA' } } });
       summarySheet.columns = [
         { header: 'Metric', key: 'metric', width: 25 },
-        { header: 'Value', key: 'value', width: 35 }
+        { header: 'Value', key: 'value', width: 40 }
       ];
       summarySheet.addRows([
         { metric: 'Execution Date', value: this.startTime.toISOString() },
@@ -75,9 +133,9 @@ class ExcelReporter {
       // Sheet 2: Test Cases
       const testCasesSheet = workbook.addWorksheet('Test Cases');
       testCasesSheet.columns = [
-        { header: 'Test ID', key: 'testId', width: 15 },
-        { header: 'Module', key: 'module', width: 20 },
-        { header: 'Scenario Name', key: 'scenarioName', width: 45 },
+        { header: 'Test ID', key: 'testId', width: 18 },
+        { header: 'Module', key: 'module', width: 30 },
+        { header: 'Scenario Name', key: 'scenarioName', width: 55 },
         { header: 'Browser', key: 'browser', width: 15 },
         { header: 'Status', key: 'status', width: 15 },
         { header: 'Start Time', key: 'startTime', width: 25 },
@@ -122,10 +180,22 @@ class ExcelReporter {
       logsSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF6B7280' } };
       this.executionLogs.forEach(row => logsSheet.addRow(row));
 
-      const filePath = config.paths.excelReportFile;
-      await workbook.xlsx.writeFile(filePath);
-      logger.info(`✅ Excel Report generated successfully at: ${filePath}`);
-      return filePath;
+      let targetFilePath = config.paths.excelReportFile;
+      try {
+        await workbook.xlsx.writeFile(targetFilePath);
+      } catch (fileErr) {
+        if (fileErr.code === 'EBUSY') {
+          const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+          targetFilePath = path.join(config.paths.excel, `E2E_Report_Latest_${timestamp}.xlsx`);
+          logger.warn(`Primary E2E_Report.xlsx locked by active file viewer. Writing report to fallback file: ${targetFilePath}`);
+          await workbook.xlsx.writeFile(targetFilePath);
+        } else {
+          throw fileErr;
+        }
+      }
+
+      logger.info(`✅ Excel Report generated successfully with ${totalTests} test cases at: ${targetFilePath}`);
+      return targetFilePath;
     } catch (err) {
       logger.error(`Failed to generate Excel report: ${err.message}`);
       return null;

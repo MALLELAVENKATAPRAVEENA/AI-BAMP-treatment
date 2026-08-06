@@ -4,9 +4,8 @@ const BasePage = require('./BasePage');
 class DashboardPage extends BasePage {
   constructor(driver) {
     super(driver);
-    this.dashboardTitle = By.xpath("//h6[contains(text(), 'Orthodontist Dashboard') or contains(text(), 'Dashboard')]");
+    this.dashboardTitle = By.xpath("//h6[contains(text(), 'Orthodontist Clinical Dashboard') or contains(text(), 'Dashboard')]");
     this.newPatientBtn = By.xpath("//button[contains(., 'New Patient')]");
-    this.reportsBtn = By.xpath("//button[contains(., 'Reports')]");
     this.patientTable = By.css('table, .MuiTable-root, .MuiCard-root');
   }
 
@@ -15,15 +14,13 @@ class DashboardPage extends BasePage {
   }
 
   async isLoaded() {
-    return (await this.getCurrentUrl()).includes('/dashboard');
+    await this.driver.sleep(1500); // Wait for React router transition
+    const url = await this.getCurrentUrl();
+    return url.includes('/dashboard');
   }
 
   async clickNewPatient() {
     await this.click(this.newPatientBtn, 'Clicking Quick Action: New Patient');
-  }
-
-  async clickReports() {
-    await this.click(this.reportsBtn, 'Clicking Quick Action: Reports');
   }
 }
 

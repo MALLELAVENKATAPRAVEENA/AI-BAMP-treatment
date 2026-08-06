@@ -19,6 +19,11 @@ yarn-error.log*
 logs/
 *.log
 
+# E2E Reports & Heavy Artifacts
+selenium-e2e/reports/
+selenium-e2e/screenshots/
+selenium-e2e/data/testResultsCache.json
+
 # Sensitive Service Accounts & Keys
 firebase-service-account.json
 *service-account*.json
@@ -43,5 +48,3 @@ Thumbs.db
 .vscode/
 .idea/
 .firebase/
-
-

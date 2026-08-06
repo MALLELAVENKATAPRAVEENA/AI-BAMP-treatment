@@ -11,6 +11,17 @@ class WaitUtils {
     );
   }
 
+  static async waitForElementInvisibility(driver, locator, timeout = config.explicitWaitMs) {
+    const loc = typeof locator === 'string' ? By.css(locator) : locator;
+    logger.info(`Waiting for element to disappear: ${loc}`);
+    try {
+      const el = await driver.findElement(loc);
+      return await driver.wait(until.stalenessOf(el), timeout);
+    } catch (_) {
+      return true; // Already invisible or removed from DOM
+    }
+  }
+
   static async waitForElementClickable(driver, locator, timeout = config.explicitWaitMs) {
     const loc = typeof locator === 'string' ? By.css(locator) : locator;
     const element = await this.waitForElementVisible(driver, loc, timeout);
@@ -71,6 +82,19 @@ class WaitUtils {
     } catch (_) {
       return null;
     }
+  }
+
+  static async switchToWindowByTitle(driver, expectedTitleSubstring) {
+    const handles = await driver.getAllWindowHandles();
+    for (const handle of handles) {
+      await driver.switchTo().window(handle);
+      const title = await driver.getTitle();
+      if (title.includes(expectedTitleSubstring)) {
+        logger.info(`Switched to window with title matching: "${expectedTitleSubstring}"`);
+        return true;
+      }
+    }
+    return false;
   }
 
   static async getBrowserConsoleLogs(driver) {

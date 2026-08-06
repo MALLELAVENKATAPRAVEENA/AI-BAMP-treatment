@@ -55,7 +55,13 @@ class DriverFactory {
       implicit: config.implicitWaitMs,
       pageLoad: config.pageLoadTimeoutMs
     });
-    await driver.manage().window().rect({ width: config.viewport.width, height: config.viewport.height });
+    try {
+      await driver.manage().window().setRect({ width: config.viewport.width, height: config.viewport.height });
+    } catch (_) {
+      try {
+        await driver.manage().window().maximize();
+      } catch (__) {}
+    }
     
     logger.info(`Selenium WebDriver session created successfully.`);
     return driver;
