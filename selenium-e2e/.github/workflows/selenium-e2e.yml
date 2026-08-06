@@ -28,10 +28,9 @@ jobs:
           cd selenium-e2e
           npm ci || npm install
 
-      - name: 4. Install Google Chrome Browser
+      - name: 4. Verify Google Chrome Browser
         run: |
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable xvfb
+          google-chrome --version || (sudo apt-get update && sudo apt-get install -y google-chrome-stable)
 
       - name: 5. Execute Dynamic React Route & Form Discovery
         run: |
