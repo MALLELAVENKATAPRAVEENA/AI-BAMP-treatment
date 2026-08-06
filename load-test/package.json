@@ -1,0 +1,29 @@
+{
+  "name": "bamp-load-testing-framework",
+  "version": "1.0.0",
+  "description": "Enterprise Production-Ready Baseline & Load Performance Testing Framework for BAMP AI Predictor APIs (100 VUs / 60s)",
+  "main": "index.js",
+  "scripts": {
+    "load-test": "node scripts/runLoadTest.js",
+    "report:excel": "node -e \"require('./utilities/excelReporter').generateFinalReport()\""
+  },
+  "keywords": [
+    "load-testing",
+    "performance-testing",
+    "baseline-testing",
+    "autocannon",
+    "rps",
+    "latency",
+    "exceljs",
+    "winston"
+  ],
+  "author": "Senior Performance Automation Architect",
+  "license": "MIT",
+  "dependencies": {
+    "autocannon": "^7.15.0",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.4.5",
+    "exceljs": "^4.4.0",
+    "winston": "^3.12.0"
+  }
+}

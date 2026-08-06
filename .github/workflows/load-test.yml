@@ -1,0 +1,51 @@
+name: Enterprise Baseline & Load Performance Testing Pipeline
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  baseline-load-test:
+    name: Execute Baseline Load Test (100 VUs / 60s)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 1. Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 2. Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'load-test/package-lock.json'
+
+      - name: 3. Install Load Testing Dependencies
+        run: |
+          cd load-test
+          npm ci || npm install
+
+      - name: 4. Run Baseline & Load Test (100 VUs / 60s)
+        env:
+          TARGET_URL: 'https://bamp-1de96.web.app'
+          CONNECTIONS: '100'
+          DURATION: '60'
+        run: |
+          cd load-test
+          npm run load-test
+
+      - name: 5. Upload Load Test Artifacts (Excel & HTML Reports)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Baseline-Load-Test-Downloadable-Reports
+          path: |
+            load-test/excel/
+            load-test/reports/
+            load-test/logs/
+          if-no-files-found: warn
+          retention-days: 30
