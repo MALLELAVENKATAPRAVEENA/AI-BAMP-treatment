@@ -11,6 +11,7 @@ jobs:
   selenium-e2e-tests:
     name: Execute Cross-Browser Selenium E2E Test Suite
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     strategy:
       matrix:

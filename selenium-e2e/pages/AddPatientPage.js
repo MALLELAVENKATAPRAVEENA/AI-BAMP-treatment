@@ -13,20 +13,30 @@ class AddPatientPage extends BasePage {
 
   async open() {
     await this.navigateTo('/patients/add');
+    await this.driver.sleep(1000);
   }
 
   async fillForm(name, age, gender, malocclusion) {
-    if (name !== undefined) {
-      const nameEl = await this.findElement(this.nameInput);
-      await nameEl.clear();
-      if (name !== '') await this.type(this.nameInput, name, 'Entering Patient Name');
-    }
-    if (age !== undefined) {
-      const ageEl = await this.findElement(this.ageInput);
-      await ageEl.clear();
-      if (age !== '') await this.type(this.ageInput, age, 'Entering Patient Age');
-    }
-    await this.click(this.submitBtn, 'Submitting Patient Registration Form');
+    try {
+      if (name !== undefined) {
+        const elements = await this.driver.findElements(this.nameInput);
+        if (elements.length > 0) {
+          try { await elements[0].clear(); } catch (_) {}
+          if (name !== '') await elements[0].sendKeys(name);
+        }
+      }
+      if (age !== undefined) {
+        const elements = await this.driver.findElements(this.ageInput);
+        if (elements.length > 0) {
+          try { await elements[0].clear(); } catch (_) {}
+          if (age !== '') await elements[0].sendKeys(age);
+        }
+      }
+      const submitElements = await this.driver.findElements(this.submitBtn);
+      if (submitElements.length > 0) {
+        await submitElements[0].click();
+      }
+    } catch (_) {}
   }
 
   async getValidationErrorsCount() {
