@@ -20,9 +20,11 @@
     "load-test:report:excel": "npm --prefix load-test run report:excel",
     "api:discover-routes": "npm --prefix api-test run discover-routes",
     "api:test": "npm --prefix api-test run test",
-    "api:report:excel": "npm --prefix api-test run report:excel"
+    "api:report:excel": "npm --prefix api-test run report:excel",
+    "report:master-excel": "node scripts/generateMasterCombinedExcel.js"
   },
   "dependencies": {
+    "exceljs": "^4.4.0",
     "firebase": "^12.16.0",
     "firebase-admin": "^14.2.0"
   }

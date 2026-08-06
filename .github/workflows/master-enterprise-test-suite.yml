@@ -1,4 +1,4 @@
-name: Master Enterprise Test Suite Pipeline (4 Frameworks & 4 Excel Reports)
+name: Master Enterprise Test Suite Pipeline (5 Excel Reports)
 
 on:
   push:
@@ -50,22 +50,18 @@ jobs:
           cd selenium-e2e
           npm run test
 
-      - name: Generate E2E Excel & HTML Reports
+      - name: Generate E2E Excel Report
         if: always()
         run: |
           cd selenium-e2e
           npm run report:excel
 
-      - name: Upload Downloadable Artifact -> Selenium E2E Report.xlsx
+      - name: Upload Artifact 1/5 -> Selenium Web E2E Excel Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Selenium-E2E-Downloadable-Excel-Report
-          path: |
-            selenium-e2e/excel/
-            selenium-e2e/reports/
-            selenium-e2e/logs/
-          if-no-files-found: warn
+          name: 1_Selenium_Web_E2E_Report.xlsx
+          path: selenium-e2e/excel/E2E_Report.xlsx
           retention-days: 30
 
   # =========================================================================
@@ -117,29 +113,25 @@ jobs:
           cd appium-e2e
           npm run test
 
-      - name: Generate Mobile Excel & HTML Reports
+      - name: Generate Mobile Excel Report
         if: always()
         run: |
           cd appium-e2e
           npm run report:excel
 
-      - name: Upload Downloadable Artifact -> Mobile E2E Report.xlsx
+      - name: Upload Artifact 2/5 -> Appium Mobile E2E Excel Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Appium-Mobile-Downloadable-Excel-Report
-          path: |
-            appium-e2e/excel/
-            appium-e2e/reports/
-            appium-e2e/logs/
-          if-no-files-found: warn
+          name: 2_Appium_Mobile_E2E_Report.xlsx
+          path: appium-e2e/excel/Mobile_E2E_Report.xlsx
           retention-days: 30
 
   # =========================================================================
   # 3. High-Concurrency Load & Stress Suite (100 VUs / 60s)
   # =========================================================================
   high-concurrency-load-suite:
-    name: ⚡ 3. High-Concurrency Load & Stress Suite (100 VUs / 60s)
+    name: ⚡ 3. High-Concurrency Load Suite (100 VUs / 60s)
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -159,7 +151,7 @@ jobs:
           cd load-test
           npm ci || npm install
 
-      - name: Execute 100-VU / 60s Baseline Load & Stress Test
+      - name: Execute 100-VU / 60s Load Test
         env:
           TARGET_URL: 'https://bamp-1de96.web.app'
           CONNECTIONS: '100'
@@ -168,20 +160,16 @@ jobs:
           cd load-test
           npm run load-test
 
-      - name: Upload Downloadable Artifact -> Load Testing Report.xlsx
+      - name: Upload Artifact 3/5 -> Load Testing Excel Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: High-Concurrency-Load-Downloadable-Excel-Report
-          path: |
-            load-test/excel/
-            load-test/reports/
-            load-test/logs/
-          if-no-files-found: warn
+          name: 3_High_Concurrency_Load_Report.xlsx
+          path: load-test/excel/Load_Testing_Report.xlsx
           retention-days: 30
 
   # =========================================================================
-  # 4. REST API Integration Suite (300+ Unique Specs)
+  # 4. REST API Integration Suite (300+ Specs)
   # =========================================================================
   api-integration-suite:
     name: 🔌 4. REST API Integration Suite (300+ Specs)
@@ -216,20 +204,75 @@ jobs:
           cd api-test
           npm run test
 
-      - name: Generate API Excel & HTML Reports
+      - name: Generate API Excel Report
         if: always()
         run: |
           cd api-test
           npm run report:excel
 
-      - name: Upload Downloadable Artifact -> API Testing Report.xlsx
+      - name: Upload Artifact 4/5 -> REST API Integration Excel Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: API-Integration-Downloadable-Excel-Report
-          path: |
-            api-test/excel/
-            api-test/reports/
-            api-test/logs/
-          if-no-files-found: warn
+          name: 4_REST_API_Integration_Report.xlsx
+          path: api-test/excel/API_Testing_Report.xlsx
+          retention-days: 30
+
+  # =========================================================================
+  # 5. Master Combined Excel Artifact Packaging Job (All 5 Excel Reports)
+  # =========================================================================
+  master-excel-reports-package:
+    name: 📊 5. Package ALL 5 Excel Reports
+    needs: [selenium-e2e-suite, appium-mobile-e2e-suite, high-concurrency-load-suite, api-integration-suite]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Download Artifact 1 - Selenium E2E
+        uses: actions/download-artifact@v4
+        with:
+          name: 1_Selenium_Web_E2E_Report.xlsx
+          path: selenium-e2e/excel/
+        continue-on-error: true
+
+      - name: Download Artifact 2 - Appium Mobile E2E
+        uses: actions/download-artifact@v4
+        with:
+          name: 2_Appium_Mobile_E2E_Report.xlsx
+          path: appium-e2e/excel/
+        continue-on-error: true
+
+      - name: Download Artifact 3 - Load Test
+        uses: actions/download-artifact@v4
+        with:
+          name: 3_High_Concurrency_Load_Report.xlsx
+          path: load-test/excel/
+        continue-on-error: true
+
+      - name: Download Artifact 4 - API Integration Test
+        uses: actions/download-artifact@v4
+        with:
+          name: 4_REST_API_Integration_Report.xlsx
+          path: api-test/excel/
+        continue-on-error: true
+
+      - name: Build 5th Master Combined Excel Report
+        run: |
+          cd api-test && npm install exceljs || true
+          cd ..
+          node scripts/generateMasterCombinedExcel.js
+
+      - name: Upload Final Downloadable ZIP Package (ALL 5 EXCEL REPORTS)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ALL-5-ENTERPRISE-EXCEL-REPORTS
+          path: excel/*.xlsx
           retention-days: 30
